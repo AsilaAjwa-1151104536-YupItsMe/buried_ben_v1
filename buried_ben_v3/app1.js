@@ -9,7 +9,7 @@ function preload() {
 
     game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
-    game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v1.png', 48, 48, 48);
+    game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v1.png?v=1', 48, 48, 72);
 
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
 
@@ -31,7 +31,7 @@ var bg;
 var tileset;
 var platforms;
 var bgm_level1;
-
+var attack;
 var revive;
 
 
@@ -70,7 +70,10 @@ function create() {
 
     game.physics.arcade.gravity.y = 700;
 
-    player = game.add.sprite(32, 380, 'Player');
+    player = game.add.sprite(32, 380, 'Player', 1);
+    player.smoothed = false;
+    //player.scale.set(1.5);
+
     game.physics.enable(player, Phaser.Physics.ARCADE);
     player.body.bounce.y = 0.1;
     player.body.collideWorldBounds = true;
@@ -84,12 +87,16 @@ function create() {
     player.animations.add('walk', [0, 1, 2, 3, 4, 5], 10, true);
     //player.animations.add('jump', [39], 1, true);
 
-    player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, true);
+    player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, false);
     player.animations.add('idle', [24, 25, 26, 27], 10, true);
+    player.animations.add('attack', [48, 49, 50, 51, 52, 53], 10, true);
+
+    player.animations.add('dead', [60, 61, 62, 63, 64, 65], 10, true);
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
     cursors = game.input.keyboard.createCursorKeys();
+    attack = game.input.keyboard.addKey(Phaser.Keyboard.X);
 
     game.LIGHT_RADIUS = 50;
 
@@ -132,6 +139,7 @@ function player_effect_light() {
 //}
 
 function update() {
+
     player_effect_light();
 
     game.physics.arcade.collide(player, layer);
@@ -163,10 +171,17 @@ function update() {
             player.animations.play('walk');
         }
     }
+    else if (attack.isDown) {
+        player.animations.play('attack');
+    }
     else {
         //player.setVelocityX(0);
         player.body.velocity.x = 0;
-        player.animations.play('idle');
+
+        if (player.body.onFloor()) {
+            player.animations.play('idle');
+        }
+        //player.animations.play('idle');
     }
 
 
@@ -179,4 +194,8 @@ function update() {
 
 }
 
-function render() { }
+function render() {
+    //game.debug.text(player.frame, 32, 32);
+
+
+}
