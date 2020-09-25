@@ -13,9 +13,12 @@ function preload() {
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
 
 }
+//testing
 var map;
 var tileset;
-var found_health = true;var item_health;var walk = 250;
+var found_health = true;
+var item_health;
+var walk = 250;
 var layer;
 var player;
 var jumpTimer = 0;
@@ -53,7 +56,11 @@ function create() {
     //layer_health.resizeWorld();
 
 
-    game.physics.arcade.gravity.y = 750;    player = game.add.sprite(32, 380, 'Player');    game.physics.enable(player, Phaser.Physics.ARCADE);    player.body.bounce.y = 0.1;
+    game.physics.arcade.gravity.y = 750;
+
+    player = game.add.sprite(32, 380, 'Player');
+    game.physics.enable(player, Phaser.Physics.ARCADE);
+    player.body.bounce.y = 0.1;
     player.body.collideWorldBounds = true;
     player.body.setSize(20, 32, 5, 16);
 
