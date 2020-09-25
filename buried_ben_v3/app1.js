@@ -9,7 +9,7 @@ function preload() {
 
     game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
-    game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v1.png?v=1', 48, 48, 72);
+    game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v2.png?v=1', 48, 48, 72);
 
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
 
@@ -89,9 +89,9 @@ function create() {
 
     player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, false);
     player.animations.add('idle', [24, 25, 26, 27], 10, true);
-    player.animations.add('attack', [48, 49, 50, 51, 52, 53], 10, true);
+    player.animations.add('dead', [48, 49, 50, 51, 52, 53], 10, false);
 
-    player.animations.add('dead', [60, 61, 62, 63, 64, 65], 10, true);
+    player.animations.add('attack', [60, 61, 62, 63, 64, 65], 10, false);
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
