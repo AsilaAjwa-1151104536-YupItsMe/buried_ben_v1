@@ -10,6 +10,9 @@ function preload() {
     game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
     game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v1.png', 48, 48, 48);
+
+    game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
+
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
 
 }
@@ -27,6 +30,7 @@ var cursors;
 var bg;
 var tileset;
 var platforms;
+var bgm_level1;
 
 var revive;
 
@@ -38,6 +42,13 @@ function create() {
     game.stage.backgroundColor = '#000000';
     bg = game.add.tileSprite(0, 0, 800, 400, 'background');
     bg.fixedToCamera = true;
+
+    bgm_level1 = game.add.audio('bgm_level1');
+    //bgm_level1.play();
+    bgm_music = [bgm_level1];
+    game.sound.setDecodedCallback(bgm_music, bgm_loop, this);
+
+
 
     map = game.add.tilemap('level1');
     map.addTilesetImage('CaveTileset', 'tiles-1');
@@ -57,7 +68,7 @@ function create() {
     //layer_health.resizeWorld();
 
 
-    game.physics.arcade.gravity.y = 750;
+    game.physics.arcade.gravity.y = 700;
 
     player = game.add.sprite(32, 380, 'Player');
     game.physics.enable(player, Phaser.Physics.ARCADE);
@@ -69,11 +80,11 @@ function create() {
 
 
     player.anchor.set(0.5, 0.5);
-
+    player.body.gravity.y = 1500;
     player.animations.add('walk', [0, 1, 2, 3, 4, 5], 10, true);
-    player.animations.add('jump', [39], 1, true);
+    //player.animations.add('jump', [39], 1, true);
 
-    //player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, true);
+    player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, true);
     player.animations.add('idle', [24, 25, 26, 27], 10, true);
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
@@ -98,6 +109,13 @@ function create() {
     //player.body.y = game.height/2;
 }
 
+function bgm_loop() {
+    bgm_music.shift();
+
+    bgm_level1.loopFull(0.6);
+
+}
+
 function player_effect_light() {
     game.shadowTexture.context.fillStyle = 'rgb(100, 100, 100)';
     game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
@@ -120,8 +138,11 @@ function update() {
     //game.physics.arcade.collide(player, layer_health);
 
     if (cursors.up.isDown && player.body.onFloor() && game.time.now > jumpTimer) {
-        player.body.velocity.y = -250;
+        
+        player.body.velocity.y = -500;
         //player.body.velocity.x = -250;
+        
+
         jumpTimer = game.time.now + 250;
         player.animations.play('jump');
     }
