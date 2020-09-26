@@ -1,4 +1,4 @@
-﻿var game = new Phaser.Game(800, 400, Phaser.AUTO, 'phaser-example', {
+﻿var game = new Phaser.Game(1200, 800, Phaser.AUTO, 'phaser-example', {
     preload: preload,
     create: create, update: update, render: render
 });
@@ -9,11 +9,14 @@ function preload() {
 
     game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
-    game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v2.png?v=1', 48, 48, 72);
+    game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v2.png?v=1', 48, 48);
 
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
 
+    game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
+
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
+       // game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 80, 92, 40);
 
 }
 
@@ -22,7 +25,7 @@ var map;
 var tileset;
 var found_health = true;
 var item_health;
-var walk = 250;
+var walk = 550;
 var layer;
 var player;
 var jumpTimer = 0;
@@ -34,13 +37,14 @@ var bgm_level1;
 var attack;
 var revive;
 
-
+var enemy_bat;
 var lightSprite;
+var enemies_bat;
 
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.backgroundColor = '#000000';
-    bg = game.add.tileSprite(0, 0, 800, 400, 'background');
+    bg = game.add.tileSprite(0, 0, 1200, 800, 'background');
     bg.fixedToCamera = true;
 
     bgm_level1 = game.add.audio('bgm_level1');
@@ -95,9 +99,6 @@ function create() {
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
-    cursors = game.input.keyboard.createCursorKeys();
-    attack = game.input.keyboard.addKey(Phaser.Keyboard.X);
-
     game.LIGHT_RADIUS = 50;
 
     game.shadowTexture = game.add.bitmapData((game.world.width), (game.world.height));
@@ -106,15 +107,42 @@ function create() {
 
     lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 
-    //game.lights = game.add.group();
+    //enemy_bat = game.add.sprite(80, 380, 'Bat');
+
+
+    ///enemies = game.add.group();
+    //game.physics.enable(enemy_bat, Phaser.Physics.ARCADE);
+    //enemy_bat.body.bounce.y = 0.1;
+    //enemy_bat.enableBody = true;    //game.lights = game.add.group();
     //game.lights.add(new Torch(game, 200, 150));
     //game.lights.add(new Torch(game, game.width - 200, 150));
     //game.movingLight = new Torch(game, game.width / 2, this.game.height / 2);
     //game.lights.add(game.movingLight);
 
     //player.body.x = game.width/2;
-    //player.body.y = game.height/2;
+    //player.body.y = game.height/2;    enemy_bat = game.add.sprite(32, 32, 'Bat');
+    enemy_bat = game.add.group();
+    enemy_bat.enableBody = true;    for (var i = 0; i < 100; i++) {
+        //var enemies = enemy.create(i * 125, 0, 'Bat');
+        var enemies_bat = enemy_bat.create(game.world.randomX, game.world.randomY, 'Bat');
+
+        enemies_bat.body.gravity.y = 6;
+        enemies_bat.body.bounce.y = 0.7 + Math.random() * 0.2;
+
+    }
+
+    //enemy_bat.body.collideWorldBounds = true;
+
+
+
+    cursors = game.input.keyboard.createCursorKeys();
+    attack = game.input.keyboard.addKey(Phaser.Keyboard.X);
 }
+
+//function create_bat() {
+//    enemies.create(360 + Math.random() * 200, 120 + Math.random() * 200, 'Bat');
+
+//}
 
 function bgm_loop() {
     bgm_music.shift();
@@ -123,7 +151,27 @@ function bgm_loop() {
 
 }
 
-function player_effect_light() {
+//function player_effect_light() {
+//    game.shadowTexture.context.fillStyle = 'rgb(100, 100, 100)';
+//    game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
+//    game.shadowTexture.context.beginPath();
+//    game.shadowTexture.context.fillStyle = 'rgb(255, 255, 8)';
+//    game.shadowTexture.context.arc(player.body.x, player.body.y,
+//    game.LIGHT_RADIUS, 0, Math.PI * 2);
+//    game.shadowTexture.context.fill();
+//    game.shadowTexture.dirty = true;
+//}
+
+//function player_reset(){
+    //game.add.sprite(32, 380, 'Player');
+//}
+
+
+
+function update() {
+
+    //player_effect_light();
+
     game.shadowTexture.context.fillStyle = 'rgb(100, 100, 100)';
     game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
     game.shadowTexture.context.beginPath();
@@ -132,18 +180,17 @@ function player_effect_light() {
     game.LIGHT_RADIUS, 0, Math.PI * 2);
     game.shadowTexture.context.fill();
     game.shadowTexture.dirty = true;
-}
 
-//function player_reset(){
-    //game.add.sprite(32, 380, 'Player');
-//}
 
-function update() {
 
-    player_effect_light();
+
 
     game.physics.arcade.collide(player, layer);
-    //game.physics.arcade.collide(player, layer_health);
+    game.physics.arcade.collide(enemy_bat, layer);
+    //game.physics.arcade.collide(bullets, enemy);
+
+    //game.physics.arcade.collide(enemy_bat, layer);
+    game.physics.arcade.collide(enemy_bat, player);
 
     if (cursors.up.isDown && player.body.onFloor() && game.time.now > jumpTimer) {
         
@@ -196,6 +243,6 @@ function update() {
 
 function render() {
     //game.debug.text(player.frame, 32, 32);
-
+    game.debug.spriteInfo(player, 32, 450);
 
 }
