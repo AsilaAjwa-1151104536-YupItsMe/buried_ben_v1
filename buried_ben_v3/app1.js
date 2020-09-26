@@ -13,10 +13,10 @@ function preload() {
 
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
 
-    game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
+   // game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
 
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
-       // game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 80, 92, 40);
+    game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 44, 92, 40);
 
 }
 
@@ -29,6 +29,7 @@ var walk = 550;
 var layer;
 var player;
 var jumpTimer = 0;
+var attackTimer = 0;
 var cursors;
 var bg;
 var tileset;
@@ -37,9 +38,14 @@ var bgm_level1;
 var attack;
 var revive;
 
-var enemy_bat;
+
+var enemy_group_bat;
 var lightSprite;
 var enemies_bat;
+var sprites_bat;
+var enemy_bat;
+
+var counter_enemy_bat=0;
 
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -48,7 +54,6 @@ function create() {
     bg.fixedToCamera = true;
 
     bgm_level1 = game.add.audio('bgm_level1');
-    //bgm_level1.play();
     bgm_music = [bgm_level1];
     game.sound.setDecodedCallback(bgm_music, bgm_loop, this);
 
@@ -60,8 +65,6 @@ function create() {
     map.addTilesetImage('props1', 'tiles-2');
 
     map.setCollisionBetween(0, 599, true, 'ground_v2');
-    //map.setCollisionBetween(0, 35, true, 'corpse_1');
-
     layer = map.createLayer('ground_v2');
 
     map.createLayer('health');
@@ -69,19 +72,16 @@ function create() {
     map.createLayer('spike_pit_layer_2');
 
     layer.resizeWorld();
-    //layer_health.resizeWorld();
-
 
     game.physics.arcade.gravity.y = 700;
 
-    player = game.add.sprite(32, 380, 'Player', 1);
+    player = game.add.sprite(32, 380, 'Player');
     player.smoothed = false;
-    //player.scale.set(1.5);
+    //player.scale.setTo(4,2);
 
     game.physics.enable(player, Phaser.Physics.ARCADE);
     player.body.bounce.y = 0.1;
     player.body.collideWorldBounds = true;
-    player.body.setSize(20, 32, 5, 16);
 
     revive = game.add.sprite(player.worldPosition.x, player.worldPosition.y, 'revive');
 
@@ -89,8 +89,6 @@ function create() {
     player.anchor.set(0.5, 0.5);
     player.body.gravity.y = 1500;
     player.animations.add('walk', [0, 1, 2, 3, 4, 5], 10, true);
-    //player.animations.add('jump', [39], 1, true);
-
     player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, false);
     player.animations.add('idle', [24, 25, 26, 27], 10, true);
     player.animations.add('dead', [48, 49, 50, 51, 52, 53], 10, false);
@@ -105,44 +103,48 @@ function create() {
     lightSprite = game.add.image(0, 0, game.shadowTexture);
 
 
-    lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
+    lightSprite.blendMode = Phaser.blendModes.MULTIPLY;    /////////////enemy/////////////////////////
+    enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);    for (var i = 0; i < 100; i++) {
 
-    //enemy_bat = game.add.sprite(80, 380, 'Bat');
+        enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
+        enemy_bat.scale.setTo(1.1);
+        enemy_bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 10, true);
+        enemy_bat.play('idle_bat');
 
-
-    ///enemies = game.add.group();
-    //game.physics.enable(enemy_bat, Phaser.Physics.ARCADE);
-    //enemy_bat.body.bounce.y = 0.1;
-    //enemy_bat.enableBody = true;    //game.lights = game.add.group();
-    //game.lights.add(new Torch(game, 200, 150));
-    //game.lights.add(new Torch(game, game.width - 200, 150));
-    //game.movingLight = new Torch(game, game.width / 2, this.game.height / 2);
-    //game.lights.add(game.movingLight);
-
-    //player.body.x = game.width/2;
-    //player.body.y = game.height/2;    enemy_bat = game.add.sprite(32, 32, 'Bat');
-    enemy_bat = game.add.group();
-    enemy_bat.enableBody = true;    for (var i = 0; i < 100; i++) {
-        //var enemies = enemy.create(i * 125, 0, 'Bat');
-        var enemies_bat = enemy_bat.create(game.world.randomX, game.world.randomY, 'Bat');
-
-        enemies_bat.body.gravity.y = 6;
-        enemies_bat.body.bounce.y = 0.7 + Math.random() * 0.2;
-
+        enemy_bat, name = 'bat' + i;
+        enemy_bat.body.immovable = true;
     }
-
-    //enemy_bat.body.collideWorldBounds = true;
-
-
 
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.X);
 }
 
-//function create_bat() {
-//    enemies.create(360 + Math.random() * 200, 120 + Math.random() * 200, 'Bat');
+function create_bat() {
+    enemy_bat = sprites.create('Bat');
+    enemy_bat.animations.add('idle_bat', [0, 1, 2], 10, true);
+    enemy_bat.animations.play('idle_bat');
 
-//}
+}
+
+function create_group_bat() {
+
+    enemies_bat = enemy_bat.create(game.world.randomX, game.world.randomY, 'Bat');
+    enemies_bat.body.gravity.y = 6;
+    enemies_bat.body.bounce.y = 0.7 + Math.random() * 0.2;
+}
+
+
+function player_bat(player, bat) {
+    counter_enemy_bat++;
+
+    if (counter_enemy_bat >= 10) {
+        bat.kill();
+        counter_enemy_bat = 0;
+    }
+      
+}
+
+
 
 function bgm_loop() {
     bgm_music.shift();
@@ -151,27 +153,7 @@ function bgm_loop() {
 
 }
 
-//function player_effect_light() {
-//    game.shadowTexture.context.fillStyle = 'rgb(100, 100, 100)';
-//    game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
-//    game.shadowTexture.context.beginPath();
-//    game.shadowTexture.context.fillStyle = 'rgb(255, 255, 8)';
-//    game.shadowTexture.context.arc(player.body.x, player.body.y,
-//    game.LIGHT_RADIUS, 0, Math.PI * 2);
-//    game.shadowTexture.context.fill();
-//    game.shadowTexture.dirty = true;
-//}
-
-//function player_reset(){
-    //game.add.sprite(32, 380, 'Player');
-//}
-
-
-
-function update() {
-
-    //player_effect_light();
-
+function player_effect_light() {
     game.shadowTexture.context.fillStyle = 'rgb(100, 100, 100)';
     game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
     game.shadowTexture.context.beginPath();
@@ -180,30 +162,21 @@ function update() {
     game.LIGHT_RADIUS, 0, Math.PI * 2);
     game.shadowTexture.context.fill();
     game.shadowTexture.dirty = true;
+}
 
-
-
-
-
-    game.physics.arcade.collide(player, layer);
-    game.physics.arcade.collide(enemy_bat, layer);
-    //game.physics.arcade.collide(bullets, enemy);
-
-    //game.physics.arcade.collide(enemy_bat, layer);
-    game.physics.arcade.collide(enemy_bat, player);
+function movement_player() {
 
     if (cursors.up.isDown && player.body.onFloor() && game.time.now > jumpTimer) {
-        
+
         player.body.velocity.y = -500;
-        //player.body.velocity.x = -250;
-        
 
         jumpTimer = game.time.now + 250;
         player.animations.play('jump');
     }
+
     else if (cursors.left.isDown) {
         player.body.velocity.x = -walk;
-        //player.setVelocityX = -walk;
+
         player.scale.x = -1;
         if (player.body.onFloor()) {
             player.animations.play('walk');
@@ -212,29 +185,42 @@ function update() {
     }
     else if (cursors.right.isDown) {
         player.body.velocity.x = walk;
-        //player.setVelocityX = walk;
+
         player.scale.x = 1;
         if (player.body.onFloor()) {
             player.animations.play('walk');
         }
     }
     else if (attack.isDown) {
+        player.body.velocity.x = 5;
         player.animations.play('attack');
+        game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
     }
-    else {
-        //player.setVelocityX(0);
-        player.body.velocity.x = 0;
 
+    else {
+        player.body.velocity.x = 0;
+        //player.animations.stop();
         if (player.body.onFloor()) {
-            player.animations.play('idle');
+            
+            player.animations.stop();
         }
-        //player.animations.play('idle');
     }
+
+}
+
+function update() {
+
+    player_effect_light();
+
+    game.physics.arcade.collide(player, layer);
+    game.physics.arcade.collide(enemy_group_bat, layer);
+    
+
+    movement_player();
 
 
     if (player.body.bottom >= game.world.bounds.bottom) {
         player.kill();
-       // player.reset(player.worldPosition.x, player.worldPosition.y);
         player.reset(player.worldPosition.x, player.worldPosition.y);
 
     }
@@ -242,7 +228,6 @@ function update() {
 }
 
 function render() {
-    //game.debug.text(player.frame, 32, 32);
     game.debug.spriteInfo(player, 32, 450);
 
 }
