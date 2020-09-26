@@ -12,6 +12,7 @@ function preload() {
     game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v2.png?v=1', 48, 48);
 
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
+    game.load.audio('attack', 'BGM/BGM_player/knife slash sound effect.mp3');
 
    // game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
 
@@ -108,23 +109,32 @@ function create() {
 
         enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
         enemy_bat.scale.setTo(1.1);
-        enemy_bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 10, true);
-        enemy_bat.play('idle_bat');
+        enemy_bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
+        enemy_bat.animations.add('alert', [8, 9, 10, 11, 12, 13], 6, true);
+        enemy_bat.animations.add('fly_bat', [16, 17, 18, 19, 20, 21, 22], 10, true);
+        enemy_bat.animations.add('attack_bat', [24, 25, 26, 27, 28, 29, 30, 31], 10, true);
+        enemy_bat.animations.add('dead_bat', [32, 33, 34, 35, 36, 37], 10, false);
+
+        enemy_bat.play('fly_bat');
 
         enemy_bat, name = 'bat' + i;
         enemy_bat.body.immovable = true;
+
+
+        //movement_bat();
     }
 
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.X);
 }
 
-function create_bat() {
-    enemy_bat = sprites.create('Bat');
-    enemy_bat.animations.add('idle_bat', [0, 1, 2], 10, true);
-    enemy_bat.animations.play('idle_bat');
+function movement_bat(){
+    if (game.physics.arcade.distanceBetween(bat, player) < 400) {
+       // enemy_bat.play('fly_bat');
+    }
 
 }
+
 
 function create_group_bat() {
 
@@ -158,8 +168,7 @@ function player_effect_light() {
     game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
     game.shadowTexture.context.beginPath();
     game.shadowTexture.context.fillStyle = 'rgb(255, 255, 8)';
-    game.shadowTexture.context.arc(player.body.x, player.body.y,
-    game.LIGHT_RADIUS, 0, Math.PI * 2);
+    game.shadowTexture.context.arc((player.body.x+15), (player.body.y+15),game.LIGHT_RADIUS, 0, Math.PI * 2);
     game.shadowTexture.context.fill();
     game.shadowTexture.dirty = true;
 }
@@ -217,7 +226,7 @@ function update() {
     
 
     movement_player();
-
+    //movement_bat();
 
     if (player.body.bottom >= game.world.bounds.bottom) {
         player.kill();
