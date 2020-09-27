@@ -37,6 +37,7 @@ var tileset;
 var platforms;
 var bgm_level1;
 var attack;
+var run;
 var revive;
 
 
@@ -90,12 +91,11 @@ function create() {
     player.anchor.set(0.5, 0.5);
     player.body.gravity.y = 1500;
     player.animations.add('walk', [0, 1, 2, 3, 4, 5], 10, true);
-    player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, false);
+    player.animations.add('run', [12, 13, 14, 15,16, 17], 10, true);
     player.animations.add('idle', [24, 25, 26, 27], 10, true);
+    player.animations.add('jump', [36, 37, 38, 39, 40, 41], 6, false);
     player.animations.add('dead', [48, 49, 50, 51, 52, 53], 10, false);
-
     player.animations.add('attack', [60, 61, 62, 63, 64, 65], 10, false);
-
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
     game.LIGHT_RADIUS = 50;
@@ -125,7 +125,9 @@ function create() {
     }
 
     cursors = game.input.keyboard.createCursorKeys();
-    attack = game.input.keyboard.addKey(Phaser.Keyboard.X);
+    attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    run = game.input.keyboard.addKey(Phaser.Keyboard.W);
+
 }
 
 function movement_bat(){
@@ -183,6 +185,24 @@ function movement_player() {
         player.animations.play('jump');
     }
 
+    else if (run.isDown && cursors.right.isDown) {
+        player.body.velocity.x = walk * 1.5;
+
+        player.scale.x = 1;
+        if (player.body.onFloor()) {
+            player.animations.play('run');
+        }
+    }
+    else if (run.isDown && cursors.left.isDown) {
+        player.body.velocity.x = -walk * 1.5;
+
+        player.scale.x = -1;
+        if (player.body.onFloor()) {
+            player.animations.play('run');
+        }
+
+    }
+
     else if (cursors.left.isDown) {
         player.body.velocity.x = -walk;
 
@@ -200,6 +220,7 @@ function movement_player() {
             player.animations.play('walk');
         }
     }
+
     else if (attack.isDown) {
         player.body.velocity.x = 5;
         player.animations.play('attack');
@@ -210,8 +231,8 @@ function movement_player() {
         player.body.velocity.x = 0;
         //player.animations.stop();
         if (player.body.onFloor()) {
-            
-            player.animations.stop();
+            player.animations.play('idle');
+            //player.animations.stop();
         }
     }
 
@@ -230,7 +251,10 @@ function update() {
 
     if (player.body.bottom >= game.world.bounds.bottom) {
         player.kill();
-        player.reset(player.worldPosition.x, player.worldPosition.y);
+        player.reset(32, 380);
+
+        //player.reset(player.worldPosition.x, player.worldPosition.y);
+
 
     }
 
