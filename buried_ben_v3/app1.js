@@ -18,6 +18,8 @@ function preload() {
 
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
     game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 44, 92, 40);
+    game.load.image('health_kit', 'TILED/character-sprite-sheets/health_kit.png?v=1');
+    game.load.image('battery', 'TILED/character-sprite-sheets/battery.png?v=1');
 
 }
 
@@ -39,6 +41,12 @@ var attack;
 var run;
 var revive;
 
+var player_health_status = 4;
+var player_health_max_status = 6;
+var player_health_count;
+var player_health_icon;
+var player_health_position;
+var player_health_group;
 
 
 var enemy_group_bat;
@@ -112,7 +120,8 @@ function create() {
     enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);    //enemy_group_bat = game.add.group();
     //enemy_group_bat.enableBody = true;
     //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;    for (var i = 0; i < 100; i++) {
-
+        //Try this later
+       // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
         enemy_bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
         enemy_bat.scale.setTo(1.1);
@@ -120,6 +129,20 @@ function create() {
         enemy_bat.body.immovable = true;
         enemy_bat.animations.play('idle_bat');
 
+    }
+
+    //player_health_count = game.add.image(32, 550, 'health_kit');
+    //player_health_count.fixedToCamera = true;
+    //player_health_icon = player_health_count.width / player_health_max_status;
+    //player_health_position = new Phaser.Rectangle(0, 0, player_health_status * player_health_icon, player_health_count.height);
+    //player_health_count.crop(player_health_position);
+
+    player_health_group = game.add.group();
+    player_health_group.scale.setTo(0.03, 0.03)
+    player_health_group.fixedToCamera = true;
+
+    for (var i = 0; i < player_health_status; i++) {
+        player_health_group.create(4500 - (i * 1200), 500, 'health_kit');
     }
 
     cursors = game.input.keyboard.createCursorKeys();
