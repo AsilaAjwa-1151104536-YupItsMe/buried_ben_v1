@@ -21,6 +21,8 @@ function preload() {
     game.load.image('health_kit', 'TILED/character-sprite-sheets/health_kit.png?v=1');
     game.load.image('battery', 'TILED/character-sprite-sheets/battery.png?v=1');
 
+    game.load.image('button_quit', 'TILED/button_quit.png');
+
 }
 
 //testing
@@ -32,7 +34,6 @@ var walk = 550;
 var layer;
 var player;
 var jumpTimer = 0;
-var attackTimer = 0;
 var cursors;
 var bg;
 var platforms;
@@ -41,12 +42,17 @@ var attack;
 var run;
 var revive;
 
+var attackTimer = 0;
+var injuryTimer = 0;
+
+
 var player_health_status = 4;
 var player_health_max_status = 6;
 var player_health_count;
 var player_health_icon;
 var player_health_position;
 var player_health_group;
+var sprite_player_health_group;
 
 var player_battery_status = 4;
 var player_battery_max_status = 6;
@@ -66,6 +72,30 @@ var batText;
 var counter_enemy_bat = 0;
 var bat_follow = 200;
 
+
+var game_over;
+var game_over_bg;
+var button_retry;
+var button_quit;
+var game_over_text;
+
+
+
+function game_over_player() {
+    game.paused = true;
+    game.stage.backgroundColor = '#000000';
+    game_over_bg = game.add.tileSprite(0, 0, 800, 400, 'background');
+    game_over_bg.fixedToCamera = true;
+    game_over_text = game.add.text(400, 300, 'Game Over', { font: "80px Courier New", fontWeight:"bold", fill: "#ffffff", align: "center" });
+    game_over_text.anchor.setTo(0.5, 0.5);
+
+    //game_over_text.text = 'Game Over';
+    game_over_text.visible = true;
+
+    button_quit = game.add.button(400, 550, 'button_quit');
+    button_quit.anchor.setTo(0.5, 0.5);
+}
+
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.backgroundColor = '#000000';
@@ -76,6 +106,7 @@ function create() {
     bgm_music = [bgm_level1];
     game.sound.setDecodedCallback(bgm_music, bgm_loop, this);
 
+    //game_over_text = game.add.text(game.world.centerX, 400, 'Game Over', { font: "40px Courier New", fill: "#ffffff", align: "center" });
 
 
     map = game.add.tilemap('level1');
@@ -123,10 +154,17 @@ function create() {
     lightSprite = game.add.image(0, 0, game.shadowTexture);
 
 
-    lightSprite.blendMode = Phaser.blendModes.MULTIPLY;    /////////////enemy/////////////////////////
-    enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);    //enemy_group_bat = game.add.group();
+    lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
+
+    /////////////enemy/////////////////////////
+
+    enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);
+
+    //enemy_group_bat = game.add.group();
     //enemy_group_bat.enableBody = true;
-    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;    for (var i = 0; i < 100; i++) {
+    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 100; i++) {
         //Try this later
        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
@@ -153,9 +191,11 @@ function create() {
     player_health_group.fixedToCamera = true;
 
     for (var i = 0; i < player_health_status; i++) {
-        player_health_group.create(4500 - (i * 1200), 12200, 'health_kit');
+        sprite_player_health_group = player_health_group.create(4500 - (i * 1200), 12200, 'health_kit');
+        sprite_player_health_group.anchor.setTo(0.5, 0.5);
+        sprite_player_health_group.name = 'health' + i;
     }
-
+    //sprite_player_health_group.anchor.setTo(0.5, 0.5);
 
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
@@ -342,7 +382,6 @@ function update() {
 
     enemy_group_bat.forEachAlive(function (bat) {
 
-
         if (player.bottom == bat.bottom && game.physics.arcade.distanceBetween(bat, player) <= 70) {
             //game.physics.arcade.moveToObject(bat, player, 60, bat_follow);
             detect_player_bat(player, bat);
@@ -350,8 +389,27 @@ function update() {
         }
 
         if (game.physics.arcade.overlap(bat, player) && !attack.isDown) {
+            injuryTimer++;
             attack_player_bat(player, bat);
+            var health;
+            health = player_health_group.getFirstAlive();
             player.animations.play('hurt');
+
+            if (injuryTimer >= 30) {
+                if (player_health_status == 0) {
+                    //player.animations.play('dead');
+                    //player.kill();
+                    //player.body.velocity.setTo(0, 0);
+                    game_over_player();
+                }
+                else {
+                    health.kill();
+                    player_health_status--;
+                    injuryTimer = 0;
+                }
+
+            }
+
         }
         else if (game.physics.arcade.overlap(bat, player) && attack.isDown) {
             //attack_player_bat(player, bat);
@@ -364,11 +422,32 @@ function update() {
 
     if (player.body.bottom >= game.world.bounds.bottom) {
         //player.kill();
-        player.reset(32, 380);
+        //player.reset(32, 380);
         //player.animations.play('dead');
         //player.animations.stop();
         //player.reset(player.worldPosition.x, player.worldPosition.y);
 
+        //var health;
+        //health = player_health_group.getFirstAlive();
+        //player.animations.play('hurt');
+        
+        //health.kill();
+        player_health_status = 0;
+        //game_over_player();
+
+        if (player_health_status == 0) {
+            //player.animations.play('dead');
+            //player.kill();
+            //player.body.velocity.setTo(0, 0);
+            game_over_player();
+        }
+
+        //if (player_health_status == 0) {
+        //    //player.animations.play('dead');
+        //    //player.kill();
+        //    //player.body.velocity.setTo(0, 0);
+        //    game_over_player();
+        //}
 
     }
 
