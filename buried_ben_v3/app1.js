@@ -48,6 +48,13 @@ var player_health_icon;
 var player_health_position;
 var player_health_group;
 
+var player_battery_status = 4;
+var player_battery_max_status = 6;
+var player_battery_count;
+var player_battery_icon;
+var player_battery_position;
+var player_battery_group;
+
 
 var enemy_group_bat;
 var lightSprite;
@@ -131,19 +138,24 @@ function create() {
 
     }
 
-    //player_health_count = game.add.image(32, 550, 'health_kit');
-    //player_health_count.fixedToCamera = true;
-    //player_health_icon = player_health_count.width / player_health_max_status;
-    //player_health_position = new Phaser.Rectangle(0, 0, player_health_status * player_health_icon, player_health_count.height);
-    //player_health_count.crop(player_health_position);
+    //////BATTERY////////////////////////////
+    player_battery_group = game.add.group();
+    player_battery_group.scale.setTo(0.03, 0.03)
+    player_battery_group.fixedToCamera = true;
 
+    for (var i = 0; i < player_battery_status; i++) {
+        player_battery_group.create(4500 - (i * 1200), 11000, 'battery');
+    }
+
+    ////HEALTH/////////////////////////
     player_health_group = game.add.group();
     player_health_group.scale.setTo(0.03, 0.03)
     player_health_group.fixedToCamera = true;
 
     for (var i = 0; i < player_health_status; i++) {
-        player_health_group.create(4500 - (i * 1200), 500, 'health_kit');
+        player_health_group.create(4500 - (i * 1200), 12200, 'health_kit');
     }
+
 
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
