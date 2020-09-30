@@ -1,6 +1,8 @@
-﻿var game = new Phaser.Game(800, 400, Phaser.AUTO, 'phaser-example', {
+﻿var game = new Phaser.Game(800, 400, Phaser.AUTO, 'Buried Ben', {
     preload: preload,
-    create: create, update: update, render: render
+    create: create,
+    update: update,
+    render: render
 });
 function preload() {
     game.load.tilemap('level1', 'TILED/PixelFantasy_Caves_1.0/map_level1.json', null, Phaser.Tilemap.TILED_JSON);
@@ -80,22 +82,6 @@ var button_quit;
 var game_over_text;
 
 
-
-function game_over_player() {
-    game.paused = true;
-    game.stage.backgroundColor = '#000000';
-    game_over_bg = game.add.tileSprite(0, 0, 800, 400, 'background');
-    game_over_bg.fixedToCamera = true;
-    game_over_text = game.add.text(400, 300, 'Game Over', { font: "80px Courier New", fontWeight:"bold", fill: "#ffffff", align: "center" });
-    game_over_text.anchor.setTo(0.5, 0.5);
-
-    //game_over_text.text = 'Game Over';
-    game_over_text.visible = true;
-
-    button_quit = game.add.button(400, 550, 'button_quit');
-    button_quit.anchor.setTo(0.5, 0.5);
-}
-
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.backgroundColor = '#000000';
@@ -108,7 +94,7 @@ function create() {
 
     //game_over_text = game.add.text(game.world.centerX, 400, 'Game Over', { font: "40px Courier New", fill: "#ffffff", align: "center" });
 
-
+    //////////////////WORLD/////////////////////////////////////////////
     map = game.add.tilemap('level1');
     map.addTilesetImage('CaveTileset', 'tiles-1');
     map.addTilesetImage('corpse_1');
@@ -125,6 +111,36 @@ function create() {
 
     game.physics.arcade.gravity.y = 1500;
 
+    /////////PLAYER//////////////////////////////////
+
+    player();
+
+    /////////////ENEMY_BAT/////////////////////////
+
+    bat();
+
+    //////BATTERY////////////////////////////
+    player_battery_group = game.add.group();
+    player_battery_group.scale.setTo(0.03, 0.03)
+    player_battery_group.fixedToCamera = true;
+
+    for (var i = 0; i < player_battery_status; i++) {
+        player_battery_group.create(4500 - (i * 1200), 11000, 'battery');
+    }
+
+    ////HEALTH/////////////////////////
+
+    player_health();
+
+    /////////////////////////////////////////////////////////////////////////////
+
+    cursors = game.input.keyboard.createCursorKeys();
+    attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
+    run = game.input.keyboard.addKey(Phaser.Keyboard.W);
+
+}
+
+function player() {
     player = game.add.sprite(32, 380, 'Player');
     player.smoothed = false;
     //player.scale.setTo(4,2);
@@ -156,8 +172,11 @@ function create() {
 
     lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 
-    /////////////enemy/////////////////////////
+}
 
+
+
+function bat() {
     enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
     //enemy_group_bat = game.add.group();
@@ -166,7 +185,7 @@ function create() {
 
     for (var i = 0; i < 100; i++) {
         //Try this later
-       // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
         enemy_bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
         enemy_bat.scale.setTo(1.1);
@@ -176,16 +195,9 @@ function create() {
 
     }
 
-    //////BATTERY////////////////////////////
-    player_battery_group = game.add.group();
-    player_battery_group.scale.setTo(0.03, 0.03)
-    player_battery_group.fixedToCamera = true;
+}
 
-    for (var i = 0; i < player_battery_status; i++) {
-        player_battery_group.create(4500 - (i * 1200), 11000, 'battery');
-    }
-
-    ////HEALTH/////////////////////////
+function player_health() {
     player_health_group = game.add.group();
     player_health_group.scale.setTo(0.03, 0.03)
     player_health_group.fixedToCamera = true;
@@ -197,12 +209,22 @@ function create() {
     }
     //sprite_player_health_group.anchor.setTo(0.5, 0.5);
 
-    cursors = game.input.keyboard.createCursorKeys();
-    attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
-    run = game.input.keyboard.addKey(Phaser.Keyboard.W);
-
 }
 
+function game_over_player() {
+    game.paused = true;
+    game.stage.backgroundColor = '#000000';
+    game_over_bg = game.add.tileSprite(0, 0, 800, 400, 'background');
+    game_over_bg.fixedToCamera = true;
+    game_over_text = game.add.text(400, 300, 'Game Over', { font: "80px Courier New", fontWeight: "bold", fill: "#ffffff", align: "center" });
+    game_over_text.anchor.setTo(0.5, 0.5);
+
+    //game_over_text.text = 'Game Over';
+    game_over_text.visible = true;
+
+    button_quit = game.add.button(400, 550, 'button_quit');
+    button_quit.anchor.setTo(0.5, 0.5);
+}
 
 function create_group_bat() {
 
@@ -308,19 +330,7 @@ function player_effect_light() {
     game.shadowTexture.dirty = true;
 }
 
-
-function update() {
-
-    player_effect_light();
-
-    game.physics.arcade.collide(player, layer);
-    //game.physics.arcade.overlap(player, enemy_group_bat);
-    game.physics.arcade.collide(enemy_group_bat, layer);
-    //game.physics.arcade.collide(enemy_group_bat);
-    //game.physics.arcade.distanceBetween(player, enemy_group_bat, player_bat, null, this);
-    //game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
-
-    //movement_bat();
+function movement_player() {
     if (cursors.up.isDown && player.body.onFloor() && game.time.now > jumpTimer) {
 
         player.body.velocity.y = -500;
@@ -379,6 +389,21 @@ function update() {
             //player.animations.stop();
         }
     }
+}
+
+function update() {
+
+    player_effect_light();
+
+    game.physics.arcade.collide(player, layer);
+    //game.physics.arcade.overlap(player, enemy_group_bat);
+    game.physics.arcade.collide(enemy_group_bat, layer);
+    //game.physics.arcade.collide(enemy_group_bat);
+    //game.physics.arcade.distanceBetween(player, enemy_group_bat, player_bat, null, this);
+    //game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
+
+    movement_player();
+    
 
     enemy_group_bat.forEachAlive(function (bat) {
 
