@@ -9,6 +9,9 @@ function preload() {
     game.load.image('tiles-1', 'TILED/PixelFantasy_Caves_1.0/CaveTileset.png');
     game.load.image('tiles-2', 'TILED/PixelFantasy_Caves_1.0/props1.png');
 
+    game.load.image('props4', 'TILED/PixelFantasy_Caves_1.0/props4.png');
+
+
     game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
     game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v2.png?v=1', 48, 48);
@@ -47,6 +50,7 @@ var revive;
 var attackTimer = 0;
 var injuryTimer = 0;
 
+var climb = 200;
 
 var player_health_status = 4;
 var player_health_max_status = 6;
@@ -63,6 +67,8 @@ var player_battery_icon;
 var player_battery_position;
 var player_battery_group;
 var sprite_player_battery_group;
+
+var player_light_radius = 50;
 
 var battery_timer = 0;
 var shading = 100;
@@ -102,15 +108,24 @@ function create() {
     map.addTilesetImage('CaveTileset', 'tiles-1');
     map.addTilesetImage('corpse_1');
     map.addTilesetImage('props1', 'tiles-2');
+    //map.addTilesetImage('props4');
 
     map.setCollisionBetween(0, 599, true, 'ground_v2');
     layer = map.createLayer('ground_v2');
 
+    //map.setCollisionBetween(0, 740, true, 'object_climb');
+    //layer_climb = map.createLayer('object_climb');
+    //layer_climb = game.add.physicsGroup(Phaser.Physics.ARCADE);
+    //layer_climb = map.createLayer('object_climb');
+    //layer_climb.body.immovable = true;
+    //map.createLayer('object_climb');
     map.createLayer('health');
     map.createLayer('spike_pit_layer_1');
     map.createLayer('spike_pit_layer_2');
+    //map.createLayer('object_climb');
 
     layer.resizeWorld();
+    //layer_climb.resizeWorld();
 
     game.physics.arcade.gravity.y = 1500;
 
@@ -131,10 +146,22 @@ function create() {
 
     /////////////////////////////////////////////////////////////////////////////
 
+    ///////////OBJECT CLIMB///////////////////////////////////////////
+    climb_object();
+
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
     run = game.input.keyboard.addKey(Phaser.Keyboard.W);
 
+}
+
+function climb_object() {
+    root = game.add.sprite(9800, 400, 'props4');
+    root.smoothed = false;
+    game.physics.enable(root, Phaser.Physics.ARCADE);
+    root.body.collideWorldBounds = true;
+    root.anchor.set(0.5, 0.5);
+    root.body.immovable = true;
 }
 
 function player() {
@@ -158,10 +185,11 @@ function player() {
     player.animations.add('dead', [48, 49, 50, 51, 52, 53], 10, false);
     player.animations.add('attack', [60, 61, 62, 63, 64, 65], 10, false);
     player.animations.add('hurt', [72, 73, 74], 6, true);
+    player.animations.add('climb', [84, 85, 86, 87, 88, 89], 10, true);
 
     game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
-    game.LIGHT_RADIUS = 50;
+    game.LIGHT_RADIUS = player_light_radius;
 
     game.shadowTexture = game.add.bitmapData((game.world.width), (game.world.height));
     lightSprite = game.add.image(0, 0, game.shadowTexture);
@@ -394,6 +422,36 @@ function movement_player() {
         //game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
     }
 
+    else if (game.physics.arcade.overlap(player, root)) {
+        //game.physics.arcade.gravity.y = 0;
+        player.body.velocity.x = 0;
+
+        if (run.isDown && cursors.up.isDown) {
+        //player.body.gravity.y = 0;
+        //game.physics.arcade.gravity.y = 0;
+            player.body.velocity.y = -climb * 2;
+            player.animations.play('climb');
+
+        }else if (run.isDown && cursors.down.isDown) {
+            player.body.velocity.y = climb* 2;
+            player.animations.play('climb');
+
+        }else if (cursors.up.isDown) {
+            //player.body.gravity.y = 0;
+            //game.physics.arcade.gravity.y = 0;
+            player.body.velocity.y = -climb;
+            player.animations.play('climb');
+
+        }else if (cursors.down.isDown) {
+            player.body.velocity.y = climb;
+            player.animations.play('climb');
+
+        }else {
+            //player.body.velocity.y = 0;
+            player.animations.stop();
+        }
+    }
+
     else if (!game.physics.arcade.overlap(enemy_group_bat, player) && !attack.isDown) {
         player.body.velocity.x = 0;
         //player.animations.stop();
@@ -402,6 +460,25 @@ function movement_player() {
             //player.animations.stop();
         }
     }
+
+}
+
+function player_climb_obstacle(){
+    //game.physics.arcade.gravity.y = 0;
+    player.body.velocity.y = 0;
+    if (cursors.up.isDown) {
+        //player.body.gravity.y = 0;
+        //game.physics.arcade.gravity.y = 0;
+        player.body.velocity.y = -walk;
+        player.animations.play('climb');
+
+    }
+    else if (cursors.down.isDown) {
+        player.body.velocity.y = walk;
+        //player.animations.play('climb');
+
+    }
+
 }
 
 function update() {
@@ -409,6 +486,9 @@ function update() {
     player_effect_light();
 
     game.physics.arcade.collide(player, layer);
+    //game.physics.arcade.overlap(player, root, player_climb_obstacle);
+    game.physics.arcade.collide(layer, root);
+
     //game.physics.arcade.overlap(player, enemy_group_bat);
     game.physics.arcade.collide(enemy_group_bat, layer);
     //game.physics.arcade.collide(enemy_group_bat);
@@ -467,14 +547,17 @@ function update() {
         var battery;
         //battery = player_battery_group.getFirstAlive();
         player_battery_status = 0;
-
+        player_light_radius = 25;
+        game.LIGHT_RADIUS = player_light_radius;
     }
-    else if (battery_timer >= 400) {
+    else if (battery_timer >= 300) {
         shading = shading - 20;
         //player_battery_status = player_battery_status - 1;
         
         battery.kill();
         player_battery_status--;
+        player_light_radius = player_light_radius - 5;
+        game.LIGHT_RADIUS = player_light_radius;
         battery_timer = 0;
     }
 
