@@ -21,7 +21,7 @@ function preload() {
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
     game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 44, 92, 40);
     game.load.image('health_kit', 'TILED/character-sprite-sheets/health_kit.png?v=1');
-    game.load.image('battery', 'TILED/character-sprite-sheets/battery.png?v=1');
+    game.load.image('battery_flashlight', 'TILED/character-sprite-sheets/battery.png?v=1');
 
     game.load.image('button_quit', 'TILED/button_quit.png');
 
@@ -62,7 +62,10 @@ var player_battery_count;
 var player_battery_icon;
 var player_battery_position;
 var player_battery_group;
+var sprite_player_battery_group;
 
+var battery_timer = 0;
+var shading = 100;
 
 var enemy_group_bat;
 var lightSprite;
@@ -120,13 +123,7 @@ function create() {
     bat();
 
     //////BATTERY////////////////////////////
-    player_battery_group = game.add.group();
-    player_battery_group.scale.setTo(0.03, 0.03)
-    player_battery_group.fixedToCamera = true;
-
-    for (var i = 0; i < player_battery_status; i++) {
-        player_battery_group.create(4500 - (i * 1200), 11000, 'battery');
-    }
+    player_battery();
 
     ////HEALTH/////////////////////////
 
@@ -197,6 +194,20 @@ function bat() {
 
 }
 
+function player_battery() {
+    player_battery_group = game.add.group();
+    player_battery_group.scale.setTo(0.03, 0.03)
+    player_battery_group.fixedToCamera = true;
+
+    for (var i = 0; i < player_battery_status; i++) {
+        sprite_player_battery_group = player_battery_group.create(4500 - (i * 1200), 11200, 'battery_flashlight');
+        sprite_player_battery_group.anchor.setTo(0.5, 0.5);
+        sprite_player_battery_group.name = 'battery' + i;
+    }
+    //sprite_player_health_group.anchor.setTo(0.5, 0.5);
+
+}
+
 function player_health() {
     player_health_group = game.add.group();
     player_health_group.scale.setTo(0.03, 0.03)
@@ -210,6 +221,8 @@ function player_health() {
     //sprite_player_health_group.anchor.setTo(0.5, 0.5);
 
 }
+
+
 
 function game_over_player() {
     game.paused = true;
@@ -321,7 +334,7 @@ function bgm_loop() {
 }
 
 function player_effect_light() {
-    game.shadowTexture.context.fillStyle = 'rgb(100, 100, 100)';
+    game.shadowTexture.context.fillStyle = 'rgb(' + shading + ', ' + shading + ', ' + shading + ')';
     game.shadowTexture.context.fillRect(0, 0, (game.world.width), (game.world.height));
     game.shadowTexture.context.beginPath();
     game.shadowTexture.context.fillStyle = 'rgb(255, 255, 8)';
@@ -443,7 +456,27 @@ function update() {
 
     });
 
+    battery_timer++;
+    var battery;
+    battery = player_battery_group.getFirstAlive();
 
+    if (shading == 0 || player_battery_status==0) {
+        shading = 10;
+        //player_battery_status = 0;
+        battery_timer = 0;
+        var battery;
+        //battery = player_battery_group.getFirstAlive();
+        player_battery_status = 0;
+
+    }
+    else if (battery_timer >= 400) {
+        shading = shading - 20;
+        //player_battery_status = player_battery_status - 1;
+        
+        battery.kill();
+        player_battery_status--;
+        battery_timer = 0;
+    }
 
     if (player.body.bottom >= game.world.bounds.bottom) {
         //player.kill();
@@ -480,5 +513,7 @@ function update() {
 
 function render() {
     //game.debug.spriteInfo(player, 32, 450);
+    game.debug.text('Time until event: ' + battery_timer, 32, 32);
+    game.debug.text('Shading: ' + shading, 32, 64);
 
 }
