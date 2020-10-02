@@ -22,7 +22,7 @@ function preload() {
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
     game.load.audio('attack', 'BGM/BGM_player/knife slash sound effect.mp3');
 
-    //game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
+    game.load.spritesheet('droid', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
 
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
     game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 44, 92, 40);
@@ -145,7 +145,7 @@ function create() {
 
     //////BATTERY////////////////////////////
     player_battery();
-
+    object_battery_item();
     ////HEALTH/////////////////////////
 
     player_health();
@@ -233,27 +233,7 @@ function object_bat() {
 
 }
 
-function object_health_item() {
-    group_health_item = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
-    //enemy_group_bat = game.add.group();
-    //enemy_group_bat.enableBody = true;
-    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
-
-    for (var i = 0; i < 50; i++) {
-        //Try this later
-        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
-        health_item = group_health_item.create(game.world.randomX, game.world.randomY, 'corpse_1');
-        //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
-        
-        health_item.name = 'health_item' + i;
-        health_item.body.immovable = true;
-        //health_item.animations.play('idle_bat');
-        health_item.scale.setTo(1);
-
-    }
-
-}
 
 
 
@@ -291,6 +271,28 @@ function player_battery() {
 
 }
 
+function object_battery_item() {
+    group_battery_item = game.add.physicsGroup(Phaser.Physics.ARCADE);
+
+    //enemy_group_bat = game.add.group();
+    //enemy_group_bat.enableBody = true;
+    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 50; i++) {
+        //Try this later
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        battery_item = group_battery_item.create(game.world.randomX, game.world.randomY, 'droid');
+        //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
+
+        battery_item.name = 'battery_item' + i;
+        battery_item.body.immovable = true;
+        //health_item.animations.play('idle_bat');
+        battery_item.scale.setTo(1);
+
+    }
+
+}
+
 function player_health() {
     player_health_group = game.add.group();
     player_health_group.scale.setTo(0.03, 0.03)
@@ -305,7 +307,27 @@ function player_health() {
 
 }
 
+function object_health_item() {
+    group_health_item = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
+    //enemy_group_bat = game.add.group();
+    //enemy_group_bat.enableBody = true;
+    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 50; i++) {
+        //Try this later
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        health_item = group_health_item.create(game.world.randomX, game.world.randomY, 'corpse_1');
+        //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
+
+        health_item.name = 'health_item' + i;
+        health_item.body.immovable = true;
+        //health_item.animations.play('idle_bat');
+        health_item.scale.setTo(1);
+
+    }
+
+}
 
 
 
@@ -533,6 +555,7 @@ function update() {
     game.physics.arcade.collide(enemy_group_bat, layer);
 
     game.physics.arcade.collide(group_health_item, layer);
+    game.physics.arcade.collide(group_battery_item, layer);
 
     //game.physics.arcade.overlap(group_health_item, player, player_health_item);
    
@@ -670,7 +693,7 @@ function update() {
     var battery;
     battery = player_battery_group.getFirstAlive();
 
-    if (shading == 0 || player_battery_status==0) {
+    if (shading == 0 || player_battery_status == 0) {
         shading = 10;
         //player_battery_status = 0;
         battery_timer = 0;
@@ -683,13 +706,36 @@ function update() {
     else if (battery_timer >= 900) {
         shading = shading - 20;
         //player_battery_status = player_battery_status - 1;
-        
+
         battery.kill();
         player_battery_status--;
         player_light_radius = player_light_radius - 5;
         game.LIGHT_RADIUS = player_light_radius;
         battery_timer = 0;
     }
+
+    player_battery_group.forEachDead(function (battery) {
+        if (game.physics.arcade.overlap(group_battery_item, player)) {
+
+            var delete_item_battery;
+            delete_item_battery = group_battery_item.getClosestTo(player);
+
+
+            if (player_battery_status < 4) {
+                battery_timer = 0;
+                shading = shading + 20;
+                player_battery_status = player_battery_status + 1;
+                battery.revive();
+                delete_item_battery.kill();
+                //player_health();
+            } else if (player_battery_status >= 4) {
+                player_battery_status = 4;
+                //player_health();
+            }
+        }
+
+    });
+
 
     if (player.body.bottom >= game.world.bounds.bottom) {
 
@@ -711,5 +757,7 @@ function render() {
     game.debug.text('Injury: ' + injuryTimer, 32, 96);
 
     game.debug.text('player_health_status: ' + player_health_status, 32, 128);
+    game.debug.text('player_battery_status: ' + player_battery_status, 32, 160);
+
 
 }
