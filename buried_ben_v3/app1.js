@@ -524,7 +524,7 @@ function movement_player() {
 function update() {
 
     player_effect_light();
-
+    //player_health();
     game.physics.arcade.collide(player, layer);
     //game.physics.arcade.overlap(player, root, player_climb_obstacle);
     game.physics.arcade.collide(layer, root);
@@ -535,16 +535,80 @@ function update() {
     game.physics.arcade.collide(group_health_item, layer);
 
     //game.physics.arcade.overlap(group_health_item, player, player_health_item);
-
+   
     movement_player();
+
+    //group_health_item.forEachAlive(function (health_item) {
+    //    if (game.physics.arcade.overlap(health_item, player)) {
+    //        var increase_health;
+    //        increase_health = player_health_group.getFirstDead();
+    //        //reduce_health.revive();
+    //        if (player_health_status < 4) {
+    //            injuryTimer = 0;
+    //            health_item.kill();
+    //            player_health_status = player_health_status + 1;
+    //            increase_health.revive();
+    //           // player_health();
+    //        }else{
+    //            player_health_status = 4;
+    //            player_health();
+    //        }
+
+
+            
+    //    }
+
+    //});
+
+    //player_health_group.forEachDead(function (health) {
+    //    if (game.physics.arcade.overlap(group_health_item, player)) {
+
+    //        var delete_item_health;
+    //        delete_item_health = group_health_item.getFirstExists();
+
+
+    //        if (player_health_status < 4) {
+    //            injuryTimer = 0;
+    //            player_health_status = player_health_status + 1;
+    //            health.revive();
+    //            delete_item_health.kill();
+    //            //player_health();
+    //        }else{
+    //            player_health_status = 4;
+    //            //player_health();
+    //        }
+    //    }
+
+    //});
+
+    player_health_group.forEachDead(function (health) {
+        if (game.physics.arcade.overlap(group_health_item, player)) {
+
+            var delete_item_health;
+            delete_item_health = group_health_item.getClosestTo(player);
+
+
+            if (player_health_status < 4) {
+                injuryTimer = 0;
+                player_health_status = player_health_status + 1;
+                health.revive();
+                delete_item_health.kill();
+                //player_health();
+            } else if (player_health_status >= 4) {
+                player_health_status = 4;
+                //player_health();
+            }
+        }
+
+    });
 
     enemy_group_stalactite.forEachAlive(function (stalactite) {
         if (game.physics.arcade.overlap(stalactite, player)) {
             player.animations.play('hurt');
             game.physics.arcade.overlap(stalactite, layer);
             injuryTimer++;
-            var health;
-            health = player_health_group.getFirstAlive();
+            var reduce_health;
+            reduce_health = player_health_group.getFirstAlive();
             //player.animations.play('hurt');
 
             if (injuryTimer >= 40) {
@@ -553,8 +617,8 @@ function update() {
                     game_over_player();
                 }
                 else {
-                    health.kill();
-                    player_health_status--;
+                    reduce_health.kill();
+                    player_health_status = player_health_status-1;
                     injuryTimer = 0;
                 }
             }
@@ -573,8 +637,8 @@ function update() {
 
         }
 
-        var health;
-        health = player_health_group.getFirstAlive();
+        var reduce_health;
+        reduce_health = player_health_group.getFirstAlive();
 
         if (game.physics.arcade.overlap(bat, player) && !attack.isDown) {
             injuryTimer++;
@@ -587,8 +651,8 @@ function update() {
                     game_over_player();
                 }
                 else {
-                    health.kill();
-                    player_health_status--;
+                    reduce_health.kill();
+                    player_health_status = player_health_status-1;
                     injuryTimer = 0;
                 }
 
@@ -644,7 +708,8 @@ function render() {
     //game.debug.spriteInfo(player, 32, 450);
     game.debug.text('Time until event: ' + battery_timer, 32, 32);
     game.debug.text('Shading: ' + shading, 32, 64);
-    
-    game.debug.text('player_health_status: ' + player_health_status, 32, 96);
+    game.debug.text('Injury: ' + injuryTimer, 32, 96);
+
+    game.debug.text('player_health_status: ' + player_health_status, 32, 128);
 
 }
