@@ -15,7 +15,9 @@ function preload() {
 
 
 
-    game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
+    game.load.image('corpse_health', 'TILED/PixelFantasy_Caves_1.0/corpse_health.png');
+    game.load.image('corpse_battery', 'TILED/PixelFantasy_Caves_1.0/corpse_battery.png');
+
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
     game.load.spritesheet('Player', 'TILED/character-sprite-sheets/1 Woodcutter/Woodcutter_v2.png?v=1', 48, 48);
 
@@ -281,7 +283,7 @@ function object_battery_item() {
     for (var i = 0; i < 50; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
-        battery_item = group_battery_item.create(game.world.randomX, game.world.randomY, 'droid');
+        battery_item = group_battery_item.create(game.world.randomX, game.world.randomY, 'corpse_battery');
         //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
 
         battery_item.name = 'battery_item' + i;
@@ -317,7 +319,7 @@ function object_health_item() {
     for (var i = 0; i < 50; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
-        health_item = group_health_item.create(game.world.randomX, game.world.randomY, 'corpse_1');
+        health_item = group_health_item.create(game.world.randomX, game.world.randomY, 'corpse_health');
         //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
 
         health_item.name = 'health_item' + i;
