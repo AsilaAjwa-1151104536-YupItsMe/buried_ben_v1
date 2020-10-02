@@ -125,7 +125,7 @@ function create() {
     //layer_climb = map.createLayer('object_climb');
     //layer_climb.body.immovable = true;
     //map.createLayer('object_climb');
-    map.createLayer('health');
+    //map.createLayer('health');
     map.createLayer('spike_pit_layer_1');
     map.createLayer('spike_pit_layer_2');
     //map.createLayer('object_climb');
@@ -137,11 +137,11 @@ function create() {
 
     /////////PLAYER//////////////////////////////////
 
-    player();
+    object_player();
 
     /////////////ENEMY_BAT/////////////////////////
 
-    bat();
+    object_bat();
 
     //////BATTERY////////////////////////////
     player_battery();
@@ -149,14 +149,16 @@ function create() {
     ////HEALTH/////////////////////////
 
     player_health();
+    object_health_item();
+
 
     /////////////////////////////////////////////////////////////////////////////
 
     ///////////OBJECT CLIMB///////////////////////////////////////////
-    climb_object();
+    object_climb();
 
     ////////////////////////FALLING OBJECT//////////////////////////
-    stalactite();
+    object_stalactite();
 
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
@@ -164,7 +166,7 @@ function create() {
 
 }
 
-function climb_object() {
+function object_climb() {
     root = game.add.sprite(9800, 400, 'props4');
     root.smoothed = false;
     game.physics.enable(root, Phaser.Physics.ARCADE);
@@ -173,8 +175,8 @@ function climb_object() {
     root.body.immovable = true;
 }
 
-function player() {
-    player = game.add.sprite(32, 380, 'Player');
+function object_player() {
+    player = game.add.sprite(32, 600, 'Player');
     player.smoothed = false;
     //player.scale.setTo(4,2);
 
@@ -210,14 +212,14 @@ function player() {
 
 
 
-function bat() {
+function object_bat() {
     enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
     //enemy_group_bat = game.add.group();
     //enemy_group_bat.enableBody = true;
     //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
 
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 100; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
@@ -231,9 +233,31 @@ function bat() {
 
 }
 
+function object_health_item() {
+    group_health_item = game.add.physicsGroup(Phaser.Physics.ARCADE);
+
+    //enemy_group_bat = game.add.group();
+    //enemy_group_bat.enableBody = true;
+    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 50; i++) {
+        //Try this later
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        health_item = group_health_item.create(game.world.randomX, game.world.randomY, 'corpse_1');
+        //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
+        
+        health_item.name = 'health_item' + i;
+        health_item.body.immovable = true;
+        //health_item.animations.play('idle_bat');
+        health_item.scale.setTo(1);
+
+    }
+
+}
 
 
-function stalactite() {
+
+function object_stalactite() {
     enemy_group_stalactite = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
     //enemy_group_bat = game.add.group();
@@ -283,6 +307,8 @@ function player_health() {
 
 
 
+
+
 function game_over_player() {
     game.paused = true;
     game.stage.backgroundColor = '#000000';
@@ -298,12 +324,12 @@ function game_over_player() {
     button_quit.anchor.setTo(0.5, 0.5);
 }
 
-function create_group_bat() {
+//function create_group_bat() {
 
-    enemies_bat = enemy_bat.create(game.world.randomX, game.world.randomY, 'Bat');
-    enemies_bat.body.gravity.y = 6;
-    enemies_bat.body.bounce.y = 0.7 + Math.random() * 0.2;
-}
+//    enemies_bat = enemy_bat.create(game.world.randomX, game.world.randomY, 'Bat');
+//    enemies_bat.body.gravity.y = 6;
+//    enemies_bat.body.bounce.y = 0.7 + Math.random() * 0.2;
+//}
 
 
 function detect_player_bat(player, bat) {
@@ -505,15 +531,13 @@ function update() {
 
     //game.physics.arcade.overlap(player, enemy_group_bat);
     game.physics.arcade.collide(enemy_group_bat, layer);
-    //game.physics.arcade.collide(enemy_group_bat);
-    //game.physics.arcade.distanceBetween(player, enemy_group_bat, player_bat, null, this);
-    //game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
-    //game.physics.arcade.collide(enemy_group_stalactite, layer);
 
-    
+    game.physics.arcade.collide(group_health_item, layer);
+
+    //game.physics.arcade.overlap(group_health_item, player, player_health_item);
 
     movement_player();
-    
+
     enemy_group_stalactite.forEachAlive(function (stalactite) {
         if (game.physics.arcade.overlap(stalactite, player)) {
             player.animations.play('hurt');
@@ -525,9 +549,7 @@ function update() {
 
             if (injuryTimer >= 40) {
                 if (player_health_status == 0) {
-                    //player.animations.play('dead');
-                    //player.kill();
-                    //player.body.velocity.setTo(0, 0);
+
                     game_over_player();
                 }
                 else {
@@ -551,18 +573,17 @@ function update() {
 
         }
 
+        var health;
+        health = player_health_group.getFirstAlive();
+
         if (game.physics.arcade.overlap(bat, player) && !attack.isDown) {
             injuryTimer++;
             attack_player_bat(player, bat);
-            var health;
-            health = player_health_group.getFirstAlive();
+
             player.animations.play('hurt');
 
             if (injuryTimer >= 30) {
                 if (player_health_status == 0) {
-                    //player.animations.play('dead');
-                    //player.kill();
-                    //player.body.velocity.setTo(0, 0);
                     game_over_player();
                 }
                 else {
@@ -589,13 +610,13 @@ function update() {
         shading = 10;
         //player_battery_status = 0;
         battery_timer = 0;
-        var battery;
+        //var battery;
         //battery = player_battery_group.getFirstAlive();
         player_battery_status = 0;
         player_light_radius = 25;
         game.LIGHT_RADIUS = player_light_radius;
     }
-    else if (battery_timer >= 300) {
+    else if (battery_timer >= 900) {
         shading = shading - 20;
         //player_battery_status = player_battery_status - 1;
         
@@ -607,33 +628,13 @@ function update() {
     }
 
     if (player.body.bottom >= game.world.bounds.bottom) {
-        //player.kill();
-        //player.reset(32, 380);
-        //player.animations.play('dead');
-        //player.animations.stop();
-        //player.reset(player.worldPosition.x, player.worldPosition.y);
 
-        //var health;
-        //health = player_health_group.getFirstAlive();
-        //player.animations.play('hurt');
-        
-        //health.kill();
         player_health_status = 0;
         //game_over_player();
 
         if (player_health_status == 0) {
-            //player.animations.play('dead');
-            //player.kill();
-            //player.body.velocity.setTo(0, 0);
             game_over_player();
         }
-
-        //if (player_health_status == 0) {
-        //    //player.animations.play('dead');
-        //    //player.kill();
-        //    //player.body.velocity.setTo(0, 0);
-        //    game_over_player();
-        //}
 
     }
 
@@ -643,5 +644,7 @@ function render() {
     //game.debug.spriteInfo(player, 32, 450);
     game.debug.text('Time until event: ' + battery_timer, 32, 32);
     game.debug.text('Shading: ' + shading, 32, 64);
+    
+    game.debug.text('player_health_status: ' + player_health_status, 32, 96);
 
 }
