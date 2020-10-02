@@ -11,6 +11,9 @@ function preload() {
 
     game.load.image('props4', 'TILED/PixelFantasy_Caves_1.0/props4.png');
 
+    game.load.spritesheet('falling_objects', 'TILED/PixelFantasy_Caves_1.0/falling_objects.png');
+
+
 
     game.load.image('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png');
     game.load.image('background', 'TILED/PixelFantasy_Caves_1.0/maxresdefault.jpg');
@@ -83,6 +86,9 @@ var batText;
 var counter_enemy_bat = 0;
 var bat_follow = 200;
 
+var enemy_group_stalactite;
+var enemy_stalactite;
+
 
 var game_over;
 var game_over_bg;
@@ -149,6 +155,9 @@ function create() {
     ///////////OBJECT CLIMB///////////////////////////////////////////
     climb_object();
 
+    ////////////////////////FALLING OBJECT//////////////////////////
+    stalactite();
+
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
     run = game.input.keyboard.addKey(Phaser.Keyboard.W);
@@ -208,7 +217,7 @@ function bat() {
     //enemy_group_bat.enableBody = true;
     //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
 
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 5; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         enemy_bat = enemy_group_bat.create(game.world.randomX, game.world.randomY, 'Bat');
@@ -217,6 +226,28 @@ function bat() {
         enemy_bat.name = 'bat' + i;
         enemy_bat.body.immovable = true;
         enemy_bat.animations.play('idle_bat');
+
+    }
+
+}
+
+
+
+function stalactite() {
+    enemy_group_stalactite = game.add.physicsGroup(Phaser.Physics.ARCADE);
+
+    //enemy_group_bat = game.add.group();
+    //enemy_group_bat.enableBody = true;
+    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 50; i++) {
+        //Try this later
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        enemy_stalactite = enemy_group_stalactite.create(game.world.randomX, game.world.randomY, 'falling_objects');
+        enemy_stalactite.scale.setTo(1.1);
+        enemy_stalactite.name = 'stalactite' + i;
+        enemy_stalactite.body.immovable = true;
+        enemy_stalactite.scale.setTo(0.35);
 
     }
 
@@ -452,7 +483,7 @@ function movement_player() {
         }
     }
 
-    else if (!game.physics.arcade.overlap(enemy_group_bat, player) && !attack.isDown) {
+    else if (!game.physics.arcade.overlap(enemy_group_bat, player) && !attack.isDown && !game.physics.arcade.overlap(enemy_group_stalactite, player)) {
         player.body.velocity.x = 0;
         //player.animations.stop();
         if (player.body.onFloor()) {
@@ -463,23 +494,6 @@ function movement_player() {
 
 }
 
-function player_climb_obstacle(){
-    //game.physics.arcade.gravity.y = 0;
-    player.body.velocity.y = 0;
-    if (cursors.up.isDown) {
-        //player.body.gravity.y = 0;
-        //game.physics.arcade.gravity.y = 0;
-        player.body.velocity.y = -walk;
-        player.animations.play('climb');
-
-    }
-    else if (cursors.down.isDown) {
-        player.body.velocity.y = walk;
-        //player.animations.play('climb');
-
-    }
-
-}
 
 function update() {
 
@@ -494,9 +508,40 @@ function update() {
     //game.physics.arcade.collide(enemy_group_bat);
     //game.physics.arcade.distanceBetween(player, enemy_group_bat, player_bat, null, this);
     //game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
+    //game.physics.arcade.collide(enemy_group_stalactite, layer);
+
+    
 
     movement_player();
     
+    enemy_group_stalactite.forEachAlive(function (stalactite) {
+        if (game.physics.arcade.overlap(stalactite, player)) {
+            player.animations.play('hurt');
+            game.physics.arcade.overlap(stalactite, layer);
+            injuryTimer++;
+            var health;
+            health = player_health_group.getFirstAlive();
+            //player.animations.play('hurt');
+
+            if (injuryTimer >= 40) {
+                if (player_health_status == 0) {
+                    //player.animations.play('dead');
+                    //player.kill();
+                    //player.body.velocity.setTo(0, 0);
+                    game_over_player();
+                }
+                else {
+                    health.kill();
+                    player_health_status--;
+                    injuryTimer = 0;
+                }
+            }
+
+        }
+        else {
+            game.physics.arcade.collide(stalactite, layer);
+        }
+    });
 
     enemy_group_bat.forEachAlive(function (bat) {
 
