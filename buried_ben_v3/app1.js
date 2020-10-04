@@ -12,6 +12,7 @@ function preload() {
     game.load.image('props4', 'TILED/PixelFantasy_Caves_1.0/props4.png');
 
     game.load.spritesheet('falling_objects', 'TILED/PixelFantasy_Caves_1.0/falling_objects.png');
+    game.load.spritesheet('diggable_objects', 'TILED/PixelFantasy_Caves_1.0/diggable_objects.png');
 
 
 
@@ -54,6 +55,7 @@ var revive;
 
 var attackTimer = 0;
 var injuryTimer = 0;
+var digTimer = 0;
 
 var climb = 200;
 
@@ -90,6 +92,9 @@ var bat_follow = 200;
 
 var enemy_group_stalactite;
 var enemy_stalactite;
+
+var enemy_group_dig;
+var enemy_dig;
 
 
 var game_over;
@@ -154,13 +159,17 @@ function create() {
     object_health_item();
 
 
-    /////////////////////////////////////////////////////////////////////////////
-
     ///////////OBJECT CLIMB///////////////////////////////////////////
     object_climb();
 
     ////////////////////////FALLING OBJECT//////////////////////////
     object_stalactite();
+
+
+    //////////////////DIGGABLE OBJECT//////////////////////////////
+    object_dig();
+
+    /////////////////////////////////////////////////////////////
 
     cursors = game.input.keyboard.createCursorKeys();
     attack = game.input.keyboard.addKey(Phaser.Keyboard.D);
@@ -242,18 +251,30 @@ function object_bat() {
 function object_stalactite() {
     enemy_group_stalactite = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
-    //enemy_group_bat = game.add.group();
-    //enemy_group_bat.enableBody = true;
-    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
-
     for (var i = 0; i < 50; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         enemy_stalactite = enemy_group_stalactite.create(game.world.randomX, game.world.randomY, 'falling_objects');
-        enemy_stalactite.scale.setTo(1.1);
+        //enemy_stalactite.scale.setTo(1.1);
         enemy_stalactite.name = 'stalactite' + i;
         enemy_stalactite.body.immovable = true;
         enemy_stalactite.scale.setTo(0.35);
+
+    }
+
+}
+
+function object_dig() {
+    enemy_group_dig = game.add.physicsGroup(Phaser.Physics.ARCADE);
+
+    for (var i = 0; i < 50; i++) {
+        //Try this later
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        enemy_dig = enemy_group_dig.create(game.world.randomX, game.world.randomY, 'diggable_objects');
+        ///enemy_dig.scale.setTo(1.1);
+        enemy_dig.name = 'dig' + i;
+        enemy_dig.body.immovable = true;
+        enemy_dig.scale.setTo(0.9);
 
     }
 
@@ -559,52 +580,12 @@ function update() {
     game.physics.arcade.collide(group_health_item, layer);
     game.physics.arcade.collide(group_battery_item, layer);
 
-    //game.physics.arcade.overlap(group_health_item, player, player_health_item);
-   
+    game.physics.arcade.collide(enemy_group_dig, layer);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     movement_player();
 
-    //group_health_item.forEachAlive(function (health_item) {
-    //    if (game.physics.arcade.overlap(health_item, player)) {
-    //        var increase_health;
-    //        increase_health = player_health_group.getFirstDead();
-    //        //reduce_health.revive();
-    //        if (player_health_status < 4) {
-    //            injuryTimer = 0;
-    //            health_item.kill();
-    //            player_health_status = player_health_status + 1;
-    //            increase_health.revive();
-    //           // player_health();
-    //        }else{
-    //            player_health_status = 4;
-    //            player_health();
-    //        }
-
-
-            
-    //    }
-
-    //});
-
-    //player_health_group.forEachDead(function (health) {
-    //    if (game.physics.arcade.overlap(group_health_item, player)) {
-
-    //        var delete_item_health;
-    //        delete_item_health = group_health_item.getFirstExists();
-
-
-    //        if (player_health_status < 4) {
-    //            injuryTimer = 0;
-    //            player_health_status = player_health_status + 1;
-    //            health.revive();
-    //            delete_item_health.kill();
-    //            //player_health();
-    //        }else{
-    //            player_health_status = 4;
-    //            //player_health();
-    //        }
-    //    }
-
-    //});
 
     player_health_group.forEachDead(function (health) {
         if (game.physics.arcade.overlap(group_health_item, player)) {
@@ -626,6 +607,8 @@ function update() {
         }
 
     });
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     enemy_group_stalactite.forEachAlive(function (stalactite) {
         if (game.physics.arcade.overlap(stalactite, player)) {
@@ -653,6 +636,28 @@ function update() {
             game.physics.arcade.collide(stalactite, layer);
         }
     });
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    enemy_group_dig.forEachAlive(function (dig) {
+
+        if (game.physics.arcade.collide(dig, player) && attack.isDown) {
+
+            digTimer++;
+
+            if (digTimer >= 40) {
+                dig.kill();
+                digTimer = 0;
+            }
+
+        }
+        else {
+            game.physics.arcade.collide(dig, player);
+        }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     enemy_group_bat.forEachAlive(function (bat) {
 
@@ -760,6 +765,9 @@ function render() {
 
     game.debug.text('player_health_status: ' + player_health_status, 32, 128);
     game.debug.text('player_battery_status: ' + player_battery_status, 32, 160);
+
+    game.debug.text('Dig: ' + digTimer, 32, 192);
+
 
 
 }
