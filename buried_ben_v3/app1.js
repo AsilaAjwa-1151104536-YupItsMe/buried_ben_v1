@@ -24,6 +24,9 @@ function preload() {
 
     game.load.audio('bgm_level1', ['BGM/BGM_cave_level_1/Cave-Loop-242562976.mp3', 'BGM/BGM_cave_level_1/Cave-Loop-242562976.ogg']);
     game.load.audio('attack', 'BGM/BGM_player/knife slash sound effect.mp3');
+    game.load.audio('attack_bat', 'BGM/BGM_bat/Bat Noises Free Sound Effects Animal Sounds.mp3');
+    game.load.audio('digging', 'BGM/BGM_dig/Shovel Digging Dirt [SOUND EFFECT].mp3');
+
 
     game.load.spritesheet('droid', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
 
@@ -95,6 +98,7 @@ var enemy_stalactite;
 
 var enemy_group_dig;
 var enemy_dig;
+var object_position_dig;
 
 
 var game_over;
@@ -104,41 +108,43 @@ var button_quit;
 var game_over_text;
 
 
+var bgm_bat;
+
+
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.backgroundColor = '#000000';
     bg = game.add.tileSprite(0, 0, 800, 400, 'background');
     bg.fixedToCamera = true;
 
+    //////////////////////////////////////////////////////////////
     bgm_level1 = game.add.audio('bgm_level1');
     bgm_music = [bgm_level1];
     game.sound.setDecodedCallback(bgm_music, bgm_loop, this);
 
     //game_over_text = game.add.text(game.world.centerX, 400, 'Game Over', { font: "40px Courier New", fill: "#ffffff", align: "center" });
 
+
+    //bgm_bat = game.add.audio('attack_bat');
+    //bgm_bat_music = [bgm_bat];
+
+    //bgm_bat = new Phaser.Sound(game, 'attack_bat', 1, true);
+
+
     //////////////////WORLD/////////////////////////////////////////////
     map = game.add.tilemap('level1');
     map.addTilesetImage('CaveTileset', 'tiles-1');
     map.addTilesetImage('corpse_1');
     map.addTilesetImage('props1', 'tiles-2');
-    //map.addTilesetImage('props4');
 
     map.setCollisionBetween(0, 599, true, 'ground_v2');
     layer = map.createLayer('ground_v2');
 
-    //map.setCollisionBetween(0, 740, true, 'object_climb');
-    //layer_climb = map.createLayer('object_climb');
-    //layer_climb = game.add.physicsGroup(Phaser.Physics.ARCADE);
-    //layer_climb = map.createLayer('object_climb');
-    //layer_climb.body.immovable = true;
-    //map.createLayer('object_climb');
-    //map.createLayer('health');
+
     map.createLayer('spike_pit_layer_1');
     map.createLayer('spike_pit_layer_2');
-    //map.createLayer('object_climb');
 
     layer.resizeWorld();
-    //layer_climb.resizeWorld();
 
     game.physics.arcade.gravity.y = 1500;
 
@@ -177,6 +183,27 @@ function create() {
 
 }
 
+//function bgm_bat_loop() {
+//    bgm_bat_music.fadeIn(4000);
+//    bgm_bat_music.shift();
+
+//    bgm_bat.loopFull(0.6);
+//}
+
+function bgm_noise_dig() {
+    bgm_dig = game.add.audio('digging');
+    bgm_dig.play();
+    //bgm_dig_music = [bgm_dig];
+    //game.sound.setDecodedCallback(bgm_dig_music, bgm_dig_loop, this);
+}
+
+function bgm_dig_loop() {
+    bgm_dig_music.shift();
+    //bgm_level1.fadeIn(4000);
+    bgm_dig.loopFull(0.6);
+
+}
+
 function object_climb() {
     root = game.add.sprite(9800, 400, 'props4');
     root.smoothed = false;
@@ -194,6 +221,8 @@ function object_player() {
     game.physics.enable(player, Phaser.Physics.ARCADE);
     player.body.bounce.y = 0.1;
     player.body.collideWorldBounds = true;
+    player.body.friction = 0.2;
+    ///player.body.width / 2;
 
     revive = game.add.sprite(player.worldPosition.x, player.worldPosition.y, 'revive');
 
@@ -239,6 +268,8 @@ function object_bat() {
         enemy_bat.name = 'bat' + i;
         enemy_bat.body.immovable = true;
         enemy_bat.animations.play('idle_bat');
+        enemy_bat.body.bounce.x = 1
+        enemy_bat.body.gravity.y = 0;
 
     }
 
@@ -267,11 +298,17 @@ function object_stalactite() {
 function object_dig() {
     enemy_group_dig = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
-    for (var i = 0; i < 50; i++) {
+    var dig_position_x = [400, 600, 300, 1100, 900, 1100, 1300, 2200, 2700, 2800, 3400, 4600, 6000, 6200, 8200, 7800, 8000, 8500, 9050];
+    var dig_position_y = [200, 400, 400, 500, 800, 900, 900, 200, 200, 800, 600, 800, 800, 900, 900, 900, 800, 800, 900];
+
+    for (var i = 0; i < dig_position_x.length; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
-        enemy_dig = enemy_group_dig.create(game.world.randomX, game.world.randomY, 'diggable_objects');
-        ///enemy_dig.scale.setTo(1.1);
+        //enemy_dig = enemy_group_dig.create(game.world.randomX, game.world.randomY, 'diggable_objects');
+
+        //Math.floor(Math.random() * 50) + 1; // returns a random integer from 1 to 100
+        enemy_dig = enemy_group_dig.create(dig_position_x[i], dig_position_y[i], 'diggable_objects');
+
         enemy_dig.name = 'dig' + i;
         enemy_dig.body.immovable = true;
         enemy_dig.scale.setTo(0.9);
@@ -354,20 +391,20 @@ function object_health_item() {
 
 
 
-function game_over_player() {
-    game.paused = true;
-    game.stage.backgroundColor = '#000000';
-    game_over_bg = game.add.tileSprite(0, 0, 800, 400, 'background');
-    game_over_bg.fixedToCamera = true;
-    game_over_text = game.add.text(400, 300, 'Game Over', { font: "80px Courier New", fontWeight: "bold", fill: "#ffffff", align: "center" });
-    game_over_text.anchor.setTo(0.5, 0.5);
+//function game_over_player() {
+//    game.paused = true;
+//    game.stage.backgroundColor = '#000000';
+//    game_over_bg = game.add.tileSprite(0, 0, 800, 400, 'background');
+//    game_over_bg.fixedToCamera = true;
+//    game_over_text = game.add.text(400, 300, 'Game Over', { font: "80px Courier New", fontWeight: "bold", fill: "#ffffff", align: "center" });
+//    game_over_text.anchor.setTo(0.5, 0.5);
 
-    //game_over_text.text = 'Game Over';
-    game_over_text.visible = true;
+//    //game_over_text.text = 'Game Over';
+//    game_over_text.visible = true;
 
-    button_quit = game.add.button(400, 550, 'button_quit');
-    button_quit.anchor.setTo(0.5, 0.5);
-}
+//    button_quit = game.add.button(400, 550, 'button_quit');
+//    button_quit.anchor.setTo(0.5, 0.5);
+//}
 
 //function create_group_bat() {
 
@@ -390,9 +427,18 @@ function detect_player_bat(player, bat) {
 
 
     //game.physics.arcade.moveToObject(bat, player, 60, bat_follow);
+
     game.physics.arcade.moveToObject(bat, player, bat_follow);
 
     bat.play('fly_bat');
+
+    //if (player.x < bat.x && bat.body.velocity.x >= 0) {
+    //    bat.body.velocity.x = -100;
+    //}
+    //else if (player.x > bat.x && bat.body.velocity.x <= 0) {
+
+    //    bat.body.velocity.x = 100;
+    //}
 
     if (player.x - bat.x > 0) {
         bat.scale.x = -1;
@@ -457,8 +503,9 @@ function attack_player_bat(player, bat) {
 
 
 function bgm_loop() {
+    
     bgm_music.shift();
-
+    //bgm_level1.fadeIn(4000);
     bgm_level1.loopFull(0.6);
 
 }
@@ -476,7 +523,7 @@ function player_effect_light() {
 function movement_player() {
     if (cursors.up.isDown && player.body.onFloor() && game.time.now > jumpTimer) {
 
-        player.body.velocity.y = -500;
+        player.body.velocity.y = -700;
 
         jumpTimer = game.time.now + 250;
         player.animations.play('jump');
@@ -519,7 +566,13 @@ function movement_player() {
     }
 
     else if (attack.isDown) {
-        player.body.velocity.x = 5;
+        if(player.scale.x == 1){
+            player.body.velocity.x = 5;
+        }
+        else if (player.scale.x == -1) {
+            player.body.velocity.x = -5;
+        }
+        //player.body.velocity.x = 5;
         player.animations.play('attack');
         //game.physics.arcade.overlap(player, enemy_group_bat, player_bat, null, this);
     }
@@ -587,12 +640,13 @@ function update() {
     movement_player();
 
 
+    /////////////////////////////////////////////////HEALTH//////////////////////////////////////////////////////////
+
     player_health_group.forEachDead(function (health) {
         if (game.physics.arcade.overlap(group_health_item, player)) {
 
             var delete_item_health;
             delete_item_health = group_health_item.getClosestTo(player);
-
 
             if (player_health_status < 4) {
                 injuryTimer = 0;
@@ -608,7 +662,7 @@ function update() {
 
     });
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////FALL ENEMY///////////////////////////////////////////////////////////////
 
     enemy_group_stalactite.forEachAlive(function (stalactite) {
         if (game.physics.arcade.overlap(stalactite, player)) {
@@ -637,7 +691,7 @@ function update() {
         }
     });
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////DIG///////////////////////////////////////////////////////////////////
 
     enemy_group_dig.forEachAlive(function (dig) {
 
@@ -645,7 +699,9 @@ function update() {
 
             digTimer++;
 
-            if (digTimer >= 40) {
+            //bgm_noise_dig();
+
+            if (digTimer >= 20) {
                 dig.kill();
                 digTimer = 0;
             }
@@ -657,28 +713,42 @@ function update() {
 
     });
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////BAT/////////////////////////////////////////////////////////////////////
 
     enemy_group_bat.forEachAlive(function (bat) {
 
-        if (player.bottom == bat.bottom && game.physics.arcade.distanceBetween(bat, player) <= 70) {
+
+        if (player.bottom != bat.bottom && game.physics.arcade.distanceBetween(bat, player) >= 250) {
+            //game.debug.text("Distance between bat: " + game.physics.arcade.distanceBetween(bat, player), 32, 256);
+
+            bat.body.velocity.x = 0;
+        }
+        else if (player.bottom == bat.bottom && game.physics.arcade.distanceBetween(bat, player) <= 100) {
             //game.physics.arcade.moveToObject(bat, player, 60, bat_follow);
             detect_player_bat(player, bat);
+            game.debug.text("Distance between bat: " + game.physics.arcade.distanceBetween(bat, player), 32, 224);
+            //attack_bat.fadeIn(4000);
+            //attack_bat.play();
+            //game.sound.setDecodedCallback(bgm_bat_music, bgm_bat_loop, this);
 
         }
 
-        var reduce_health;
-        reduce_health = player_health_group.getFirstAlive();
+    /////////////////////////////////HEALTH///////////////////////////////////////////////////////////////
+
 
         if (game.physics.arcade.overlap(bat, player) && !attack.isDown) {
             injuryTimer++;
             attack_player_bat(player, bat);
 
             player.animations.play('hurt');
+            // player.body.velocity.x = 0;
+
+            var reduce_health;
+            reduce_health = player_health_group.getFirstAlive();
 
             if (injuryTimer >= 30) {
                 if (player_health_status == 0) {
-                    game_over_player();
+                    //game_over_player();
                 }
                 else {
                     reduce_health.kill();
@@ -696,6 +766,8 @@ function update() {
 
     });
 
+    //////////////////////////////////////////////////BATTERY///////////////////////////////////////////////////////////////////////////////
+
     battery_timer++;
     var battery;
     battery = player_battery_group.getFirstAlive();
@@ -710,7 +782,7 @@ function update() {
         player_light_radius = 25;
         game.LIGHT_RADIUS = player_light_radius;
     }
-    else if (battery_timer >= 900) {
+    else if (battery_timer >= 800) {
         shading = shading - 20;
         //player_battery_status = player_battery_status - 1;
 
@@ -734,6 +806,8 @@ function update() {
                 player_battery_status = player_battery_status + 1;
                 battery.revive();
                 delete_item_battery.kill();
+                player_light_radius = player_light_radius + 5;
+                game.LIGHT_RADIUS = player_light_radius;
                 //player_health();
             } else if (player_battery_status >= 4) {
                 player_battery_status = 4;
@@ -743,6 +817,7 @@ function update() {
 
     });
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     if (player.body.bottom >= game.world.bounds.bottom) {
 
@@ -750,7 +825,7 @@ function update() {
         //game_over_player();
 
         if (player_health_status == 0) {
-            game_over_player();
+            //game_over_player();
         }
 
     }
@@ -768,6 +843,7 @@ function render() {
 
     game.debug.text('Dig: ' + digTimer, 32, 192);
 
-
+    game.debug.body(player);
+    
 
 }
