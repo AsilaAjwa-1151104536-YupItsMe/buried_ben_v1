@@ -615,6 +615,7 @@ function player_effect_light() {
 
 function object_player() {
     player = game.add.sprite(60, 40, 'Player');
+    //player = game.add.sprite(10010, 190, 'Player');
     player.smoothed = false;
     //player.scale.setTo(4,2);
 
