@@ -1,4 +1,4 @@
-﻿var game = new Phaser.Game(800, 400, Phaser.AUTO, 'Buried Ben', {
+﻿var game = new Phaser.Game(800, 400, Phaser.AUTO, 'Buried Ben Level 1', {
     preload: preload,
     create: create,
     update: update,
@@ -141,7 +141,12 @@ function create() {
     //////////////////WORLD/////////////////////////////////////////////
     map = game.add.tilemap('level1');
     map.addTilesetImage('CaveTileset', 'tiles-1');
+    game.load.image('tiles-1', 'TILED/PixelFantasy_Caves_1.0/CaveTileset.png');
+
+
     map.addTilesetImage('corpse_1');
+
+
     map.addTilesetImage('props1', 'tiles-2');
 
     map.setCollisionBetween(0, 599, true, 'ground_v2');
@@ -152,8 +157,8 @@ function create() {
     map.createLayer('spike_pit_layer_2');
 
     layer.resizeWorld();
-
     game.physics.arcade.gravity.y = 1500;
+    
 
     /////////PLAYER//////////////////////////////////
 
@@ -222,7 +227,7 @@ function object_climb() {
 }
 
 function object_player() {
-    player = game.add.sprite(9800, 400, 'Player');
+    player = game.add.sprite(60, 580, 'Player');
     player.smoothed = false;
     //player.scale.setTo(4,2);
 
