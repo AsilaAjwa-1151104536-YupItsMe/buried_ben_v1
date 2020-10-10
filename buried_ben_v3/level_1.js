@@ -30,8 +30,15 @@ function preload() {
 
     game.load.spritesheet('droid', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/droid.png?v=1', 32, 32);
 
+
+
     //game.load.atlas('corpse_1', 'TILED/PixelFantasy_Caves_1.0/corpse_1.png', 'TILED/PixelFantasy_Caves_1.0/map_level1.json');
     game.load.spritesheet('Bat', 'TILED/character-sprite-sheets/sprite_monster/Bat/Bat/bat_v1.png?v=1', 44, 92, 40);
+
+    //game.load.spritesheet('Dweller', 'TILED/character-sprite-sheets/sprite_monster/Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Mushroom/dweller_v1.png?v=1', 150, 103);
+    game.load.spritesheet('Dweller', 'TILED/character-sprite-sheets/sprite_monster/Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Mushroom/Undead executioner puppet_v2.png?v=1', 100, 100);
+
+
     game.load.image('health_kit', 'TILED/character-sprite-sheets/health_kit.png?v=1');
     game.load.image('battery_flashlight', 'TILED/character-sprite-sheets/battery.png?v=1');
 
@@ -83,8 +90,10 @@ var player_light_radius = 50;
 var battery_timer = 0;
 var shading = 100;
 
-var enemy_group_bat;
 var lightSprite;
+
+var enemy_group_bat;
+
 var enemies_bat;
 var sprites_bat;
 var enemy_bat;
@@ -92,6 +101,12 @@ var distance_bat = 0;
 var batText;
 var counter_enemy_bat = 0;
 var bat_follow = 200;
+
+
+var enemy_group_dweller;
+var enemy_dweller;
+var counter_enemy_dweller = 0;
+var dweller_follow = 400;
 
 var enemy_group_stalactite;
 var enemy_stalactite;
@@ -122,14 +137,6 @@ function create() {
     bgm_music = [bgm_level1];
     game.sound.setDecodedCallback(bgm_music, bgm_loop, this);
 
-    //game_over_text = game.add.text(game.world.centerX, 400, 'Game Over', { font: "40px Courier New", fill: "#ffffff", align: "center" });
-
-
-    //bgm_bat = game.add.audio('attack_bat');
-    //bgm_bat_music = [bgm_bat];
-
-    //bgm_bat = new Phaser.Sound(game, 'attack_bat', 1, true);
-
 
     //////////////////WORLD/////////////////////////////////////////////
     map = game.add.tilemap('level1');
@@ -155,6 +162,13 @@ function create() {
     /////////////ENEMY_BAT/////////////////////////
 
     object_bat();
+
+
+
+    /////////////ENEMY_DWELLER/////////////////////////
+
+    object_dweller();
+
 
     //////BATTERY////////////////////////////
     player_battery();
@@ -183,12 +197,6 @@ function create() {
 
 }
 
-//function bgm_bat_loop() {
-//    bgm_bat_music.fadeIn(4000);
-//    bgm_bat_music.shift();
-
-//    bgm_bat.loopFull(0.6);
-//}
 
 function bgm_noise_dig() {
     bgm_dig = game.add.audio('digging');
@@ -214,7 +222,7 @@ function object_climb() {
 }
 
 function object_player() {
-    player = game.add.sprite(32, 600, 'Player');
+    player = game.add.sprite(9800, 400, 'Player');
     player.smoothed = false;
     //player.scale.setTo(4,2);
 
@@ -255,10 +263,6 @@ function object_player() {
 function object_bat() {
     enemy_group_bat = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
-    //enemy_group_bat = game.add.group();
-    //enemy_group_bat.enableBody = true;
-    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
-
     for (var i = 0; i < 100; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
@@ -274,6 +278,30 @@ function object_bat() {
     }
 
 }
+
+
+
+function object_dweller() {
+    enemy_group_dweller = game.add.physicsGroup(Phaser.Physics.ARCADE);
+    var dweller_position_x = [9150];
+    var dweller_position_y = [950];
+
+    for (var i = 0; i < dweller_position_x.length; i++) {
+        //Try this later
+        // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
+        enemy_dweller = enemy_group_dweller.create(dweller_position_x[i], dweller_position_y[i], 'Dweller');
+        enemy_dweller.animations.add('idle_dweller', [0,1,2,3,6,7,8,9], 8, true);
+        //enemy_dweller.scale.setTo(1.2);
+        enemy_dweller.name = 'dweller' + i;
+        enemy_dweller.body.immovable = true;
+        enemy_dweller.animations.play('idle_dweller');
+        enemy_dweller.body.bounce.x = 1
+        //enemy_dweller.body.gravity.y = 0;
+
+    }
+
+}
+
 
 
 
@@ -299,14 +327,11 @@ function object_dig() {
     enemy_group_dig = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
     var dig_position_x = [400, 600, 300, 1100, 900, 1100, 1300, 2200, 2700, 2800, 3400, 4600, 6000, 6200, 8200, 7800, 8000, 8500, 9050];
-    var dig_position_y = [200, 400, 400, 500, 800, 900, 900, 200, 200, 800, 600, 800, 800, 900, 900, 900, 800, 800, 900];
+    var dig_position_y = [200, 400, 400, 500, 800, 900, 900, 200, 200, 900, 600, 800, 800, 900, 900, 900, 800, 800, 900];
 
     for (var i = 0; i < dig_position_x.length; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
-        //enemy_dig = enemy_group_dig.create(game.world.randomX, game.world.randomY, 'diggable_objects');
-
-        //Math.floor(Math.random() * 50) + 1; // returns a random integer from 1 to 100
         enemy_dig = enemy_group_dig.create(dig_position_x[i], dig_position_y[i], 'diggable_objects');
 
         enemy_dig.name = 'dig' + i;
@@ -334,19 +359,13 @@ function player_battery() {
 function object_battery_item() {
     group_battery_item = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
-    //enemy_group_bat = game.add.group();
-    //enemy_group_bat.enableBody = true;
-    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
-
     for (var i = 0; i < 50; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         battery_item = group_battery_item.create(game.world.randomX, game.world.randomY, 'corpse_battery');
-        //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
 
         battery_item.name = 'battery_item' + i;
         battery_item.body.immovable = true;
-        //health_item.animations.play('idle_bat');
         battery_item.scale.setTo(1);
 
     }
@@ -370,19 +389,13 @@ function player_health() {
 function object_health_item() {
     group_health_item = game.add.physicsGroup(Phaser.Physics.ARCADE);
 
-    //enemy_group_bat = game.add.group();
-    //enemy_group_bat.enableBody = true;
-    //enemy_group_bat.physicsBodyType = Phaser.Physics.ARCADE;
-
     for (var i = 0; i < 50; i++) {
         //Try this later
         // Math.floor(Math.random() * 100) + 1; // returns a random integer from 1 to 100
         health_item = group_health_item.create(game.world.randomX, game.world.randomY, 'corpse_health');
-        //health_item.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
 
         health_item.name = 'health_item' + i;
         health_item.body.immovable = true;
-        //health_item.animations.play('idle_bat');
         health_item.scale.setTo(1);
 
     }
@@ -390,39 +403,9 @@ function object_health_item() {
 }
 
 
-
-//function game_over_player() {
-//    game.paused = true;
-//    game.stage.backgroundColor = '#000000';
-//    game_over_bg = game.add.tileSprite(0, 0, 800, 400, 'background');
-//    game_over_bg.fixedToCamera = true;
-//    game_over_text = game.add.text(400, 300, 'Game Over', { font: "80px Courier New", fontWeight: "bold", fill: "#ffffff", align: "center" });
-//    game_over_text.anchor.setTo(0.5, 0.5);
-
-//    //game_over_text.text = 'Game Over';
-//    game_over_text.visible = true;
-
-//    button_quit = game.add.button(400, 550, 'button_quit');
-//    button_quit.anchor.setTo(0.5, 0.5);
-//}
-
-//function create_group_bat() {
-
-//    enemies_bat = enemy_bat.create(game.world.randomX, game.world.randomY, 'Bat');
-//    enemies_bat.body.gravity.y = 6;
-//    enemies_bat.body.bounce.y = 0.7 + Math.random() * 0.2;
-//}
-
-
 function detect_player_bat(player, bat) {
 
     bat.anchor.set(0.5);
-    //bat.body.velocity.x = bat_follow;
-    //bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
-    //bat.animations.add('alert', [8, 9, 10, 11, 12, 13], 6, false);
-    ////bat.animations.add('fly_bat', [16, 17, 18, 19, 20, 21, 22], 10, true);
-    //bat.animations.add('attack_bat', [24, 25, 26, 27, 28, 29, 30, 31], 10, true);
-    //bat.animations.add('dead_bat', [32, 33, 34, 35, 36, 37], 10, false);
     bat.animations.add('fly_bat', [16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31], 15, true);
 
 
@@ -444,6 +427,27 @@ function detect_player_bat(player, bat) {
         bat.scale.x = -1;
     } else {
         bat.scale.x = 1;
+    }
+
+
+}
+
+
+function detect_player_dweller(player, dweller) {
+
+    dweller.anchor.set(0.5);
+
+    //dweller.animations.add('run_dweller', [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], 15, true);
+    dweller.animations.add('run_dweller', [12,13,14,15,16,17,18,19,20,21,22,23], 8, true);
+
+    game.physics.arcade.moveToObject(dweller, player, dweller_follow);
+
+    dweller.play('run_dweller');
+
+    if (player.x - dweller.x > 0) {
+        dweller.scale.x = 1;
+    } else {
+        dweller.scale.x = -1;
     }
 
 
@@ -472,15 +476,24 @@ function player_kill_bat(player, bat) {
     }
 }
 
+function player_kill_dweller(player, dweller) {
+    counter_enemy_dweller++;
+
+    if (counter_enemy_dweller >= 50) {
+        //bat.play('dead_bat');
+
+        counter_enemy_dweller = 0;
+        dweller.kill();
+    }
+    else {
+        attack_player_dweller(player, dweller);
+    }
+}
+
 
 function attack_player_bat(player, bat) {
 
     bat.anchor.set(0.5);
-    //bat.animations.add('idle_bat', [0, 1, 2, 3, 4, 5, 6], 3, true);
-    //bat.animations.add('alert', [8, 9, 10, 11, 12, 13], 6, false);
-    //bat.animations.add('fly_bat', [16, 17, 18, 19, 20, 21, 22], 10, true);
-    ///bat.animations.add('attack_bat', [24, 25, 26, 27, 28, 29, 30, 31], 10, true);
-    //bat.animations.add('dead_bat', [32, 33, 34, 35, 36, 37], 10, false);
 
     bat.animations.add('attack_bat', [27, 28, 29, 30, 31], 10, true);
 
@@ -494,6 +507,26 @@ function attack_player_bat(player, bat) {
         bat.scale.x = -1;
     } else {
         bat.scale.x = 1;
+    }
+
+}
+
+function attack_player_dweller(player, dweller) {
+
+    dweller.anchor.set(0.5);
+
+    dweller.animations.add('attack_dweller', [21], 8, true);
+
+
+    //game.physics.arcade.moveToObject(bat, player, 60, bat_follow);
+    game.physics.arcade.moveToObject(dweller, player, dweller_follow);
+
+    dweller.play('attack_dweller');
+
+    if (player.x - dweller.x > 0) {
+        dweller.scale.x = 1;
+    } else {
+        dweller.scale.x = -1;
     }
 
 }
@@ -630,6 +663,8 @@ function update() {
     //game.physics.arcade.overlap(player, enemy_group_bat);
     game.physics.arcade.collide(enemy_group_bat, layer);
 
+    game.physics.arcade.collide(enemy_group_dweller, layer);
+
     game.physics.arcade.collide(group_health_item, layer);
     game.physics.arcade.collide(group_battery_item, layer);
 
@@ -648,10 +683,15 @@ function update() {
             var delete_item_health;
             delete_item_health = group_health_item.getClosestTo(player);
 
+            //var increase_health;
+            //increase_health = player_health_group.getFirstDead();
+
+            
             if (player_health_status < 4) {
                 injuryTimer = 0;
                 player_health_status = player_health_status + 1;
                 health.revive();
+                //increase_health.revive();
                 delete_item_health.kill();
                 //player_health();
             } else if (player_health_status >= 4) {
@@ -733,9 +773,6 @@ function update() {
 
         }
 
-    /////////////////////////////////HEALTH///////////////////////////////////////////////////////////////
-
-
         if (game.physics.arcade.overlap(bat, player) && !attack.isDown) {
             injuryTimer++;
             attack_player_bat(player, bat);
@@ -762,6 +799,49 @@ function update() {
         else if (game.physics.arcade.overlap(bat, player) && attack.isDown) {
             //attack_player_bat(player, bat);
             player_kill_bat(player, bat);
+        }
+
+    });
+
+
+    ////////////////////////////////DWELLER/////////////////////////////////////////////////////////////////////
+
+    enemy_group_dweller.forEachAlive(function (dweller) {
+
+
+        if (player.bottom != dweller.bottom && game.physics.arcade.distanceBetween(dweller, player) >= 650) {
+            dweller.body.velocity.x = 0;
+        }
+        else if (player.bottom == dweller.bottom && game.physics.arcade.distanceBetween(dweller, player) <= 300) {
+            detect_player_dweller(player, dweller);
+            game.debug.text("Distance between dweller: " + game.physics.arcade.distanceBetween(dweller, player), 32, 224);
+
+        }
+
+        if (game.physics.arcade.overlap(dweller, player) && !attack.isDown) {
+            injuryTimer++;
+            attack_player_dweller(player, dweller);
+
+            player.animations.play('hurt');
+
+            var reduce_health;
+            reduce_health = player_health_group.getFirstAlive();
+
+            if (injuryTimer >= 20) {
+                if (player_health_status == 0) {
+                    //game_over_player();
+                }
+                else {
+                    reduce_health.kill();
+                    player_health_status = player_health_status - 1;
+                    injuryTimer = 0;
+                }
+
+            }
+
+        }
+        else if (game.physics.arcade.overlap(dweller, player) && attack.isDown) {
+            player_kill_dweller(player, dweller);
         }
 
     });
@@ -844,6 +924,7 @@ function render() {
     game.debug.text('Dig: ' + digTimer, 32, 192);
 
     game.debug.body(player);
+    game.debug.body(enemy_group_dweller);
     
 
 }
