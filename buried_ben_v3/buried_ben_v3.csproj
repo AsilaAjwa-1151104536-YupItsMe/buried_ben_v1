@@ -24,7 +24,6 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="level_1.js" />
-    <Content Include="menu.js" />
     <Content Include="app3.js" />
     <Content Include="index.html" />
     <Content Include="phaser.js" />
